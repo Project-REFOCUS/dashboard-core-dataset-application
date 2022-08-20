@@ -5,6 +5,7 @@ class EntityKey:
     calendar_holiday_date = 'calendar.holiday_date'
     calendar_holiday_type = 'calendar.holiday_type'
     calendar_month = 'calendar.month'
+    census_us_state = 'census.us_state'
 
 
 entity_key = EntityKey()

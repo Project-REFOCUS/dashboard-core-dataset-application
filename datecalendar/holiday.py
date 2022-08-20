@@ -108,7 +108,6 @@ class CalendarHolidayDate(ResourceEntity):
             year += 1
 
 
-# TODO: Populate holiday table and create new table calendar_holiday which maps calendar_date to holiday
 class CalendarHoliday(ResourceEntity):
 
     @staticmethod
