@@ -1,3 +1,4 @@
+from datetime import datetime
 def array_equals(array_one, array_two):
     length = len(array_one)
     equals = length == len(array_two)
@@ -18,3 +19,7 @@ def stringify(array):
         delimiter = ','
 
     return string
+
+
+def from_string_to_date(date_string, format_string):
+    return datetime.strptime(date_string, format_string).date()

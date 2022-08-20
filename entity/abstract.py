@@ -32,6 +32,9 @@ class ResourceEntity:
         self.record_cache = {}
 
     def get_cache(self):
+        if self.record_cache is None:
+            self.load_cache()
+
         return self.record_cache
 
     def fetch(self):

@@ -35,6 +35,6 @@ def execute(entities):
 if __name__ == '__main__':
     root_entities = [
         entity_key.calendar_date,
-        entity_key.calendar_holiday
+        entity_key.calendar_holiday_date
     ]
     execute(root_entities)
