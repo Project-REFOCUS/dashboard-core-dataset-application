@@ -1,4 +1,10 @@
 from datetime import datetime
+
+import math
+import sys
+import os
+
+
 def array_equals(array_one, array_two):
     length = len(array_one)
     equals = length == len(array_two)
@@ -23,3 +29,19 @@ def stringify(array):
 
 def from_string_to_date(date_string, format_string):
     return datetime.strptime(date_string, format_string).date()
+
+
+def log(message, newline=True, show_timestamp=True):
+    timestamp = str(datetime.now()) if show_timestamp else ''
+    sys.stdout.write('\033[1m{}\033[0m {}{}'.format(timestamp, message, '\n' if newline else ''))
+
+
+def percentage(processed, amount):
+    quotient = processed / amount
+    return f'{math.floor(quotient * 100)}%'
+
+
+def progress(value, total):
+    if os.getenv('DEBUG_PROGRESS') is not None:
+        newline = value == total
+        log(f'\rProgress: {percentage(value, total)} - Records processed: {value} of {total}', newline, False)

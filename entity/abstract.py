@@ -1,3 +1,4 @@
+from common.utils import progress
 from database.mysqldb import MysqlClient
 
 import types
@@ -45,7 +46,7 @@ class ResourceEntity:
         if self.mysql_client.is_connected():
             self.mysql_client.start_transaction()
 
-            # record_count = len(self.records)
+            record_count = len(self.records)
             records_processed = 0
 
             # Used to cache values for additional calculations
@@ -58,6 +59,7 @@ class ResourceEntity:
 
                 if self.skip_record(record):
                     records_processed += 1
+                    progress(records_processed, record_count)
                     continue
 
                 for field in self.fields:
@@ -86,6 +88,7 @@ class ResourceEntity:
                 self.mysql_client.insert(self.table_name, columns, values)
 
                 records_processed += 1
+                progress(records_processed, record_count)
 
             self.mysql_client.commit()
 
