@@ -36,6 +36,8 @@ if __name__ == '__main__':
     root_entities = [
         entity_key.calendar_date,
         entity_key.calendar_holiday_date,
-        entity_key.census_us_city
+        entity_key.census_state_population,
+        entity_key.census_county_population,
+        entity_key.census_city_population
     ]
     execute(root_entities)

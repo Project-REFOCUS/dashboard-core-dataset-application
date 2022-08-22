@@ -76,3 +76,71 @@ class USCity(ResourceEntity):
             state_code = state['code']
             response_content = json.loads(requests.request('GET', f'{url}&within={state_code}').content)
             self.records.extend(response_content['response']['geos']['items'])
+
+
+class CityPopulation(ResourceEntity):
+
+    @staticmethod
+    def dependencies():
+        return [entity_key.census_us_city]
+
+    def get_city_id(self, record, field):
+        city_cache = self.dependencies_cache[entity_key.census_us_city]
+        return city_cache[record[field]]['id']
+
+    def __init__(self):
+        super().__init__()
+
+        self.table_name = 'city_population_2020'
+        self.fields = [
+            {'field': 'population', 'column': 'population'},
+            {'field': 'city', 'column': 'city_id', 'data': self.get_city_id}
+        ]
+
+    def load_cache(self):
+        cacheable_fields = ['city_id']
+        records = self.mysql_client.select(self.table_name)
+        for record in records:
+            if self.record_cache is None:
+                self.record_cache = {}
+
+            for field in cacheable_fields:
+                self.record_cache[record[field]] = record
+
+    def skip_record(self, record):
+        city_cache = self.dependencies_cache[entity_key.census_us_city]
+        return record['city'] in ignored_cities or record['city'] not in city_cache\
+            or city_cache[record['city']]['id'] in self.record_cache
+
+    def fetch(self):
+        url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=100&id=4'
+        response_content = json.loads(requests.request('GET', url).content)
+        list_of_states = response_content['response']['geos']['items']
+
+        self.records = []
+        topic = 'Population%20Total'
+        data_id = 'ACSDT5Y2020.B01003'
+        global_state_code = '$1600000'
+        base_url = 'https://data.census.gov/api/access/data/table'
+
+        for state in list_of_states:
+            state_name, state_code = state['name'], state['code']
+            if '$' in state_code:
+                print(f'Skipping {state_name}')
+                continue
+
+            print(f'Fetching city data for {state_name}')
+            city_population_url = f'{base_url}?t={topic}&g={state_code}{global_state_code}&id={data_id}'
+            response = requests.request('GET', city_population_url)
+            if response.content is None or len(response.content) == 0:
+                print(f'Skipping {state_name}')
+                continue
+
+            response_content = json.loads(response.content)
+            population_data = response_content['response']['data']
+
+            for data_index in range(1, len(population_data)):
+                self.records.append({
+                    'population': population_data[data_index][2],
+                    'city': population_data[data_index][5]
+                })
