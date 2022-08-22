@@ -58,8 +58,11 @@ class USCity(ResourceEntity):
     def skip_record(self, record):
         county_cache = self.dependencies_cache[entity_key.census_us_county]
         county_fips_code = record['code'].split('US')[1][0:5]
-        county = county_cache[county_fips_code] if county_fips_code in county_cache\
-            else self.search_county_for_city(record)
+        if record['name'] not in self.record_cache:
+            county = county_cache[county_fips_code] if county_fips_code in county_cache\
+                else self.search_county_for_city(record)
+        else:
+            county = None
 
         return county is None or record['name'] in self.record_cache or record['name'] in ignored_cities
 
