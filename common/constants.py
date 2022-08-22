@@ -11,6 +11,7 @@ class EntityKey:
     census_state_population = 'census.state_population'
     census_county_population = 'census.county_population'
     census_city_population = 'census.city_population'
+    census_race_ethnicity = 'census.race_ethnicity'
 
 
 entity_key = EntityKey()

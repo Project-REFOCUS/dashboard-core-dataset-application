@@ -3,6 +3,7 @@ from datecalendar.holiday import CalendarHolidayDate, CalendarHoliday, CalendarH
 from census.city import USCity, CityPopulation
 from census.county import USCounty, CountyPopulation
 from census.state import USState, StatePopulation
+from census.ethnicity import RaceEthnicity
 from common.constants import entity_key
 
 entity_map = {
@@ -17,5 +18,6 @@ entity_map = {
     entity_key.census_us_state: USState,
     entity_key.census_state_population: StatePopulation,
     entity_key.census_county_population: CountyPopulation,
-    entity_key.census_city_population: CityPopulation
+    entity_key.census_city_population: CityPopulation,
+    entity_key.census_race_ethnicity: RaceEthnicity
 }

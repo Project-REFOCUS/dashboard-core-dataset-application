@@ -4,6 +4,7 @@ from common.constants import entity_key
 import sys
 
 instantiated_entity_map = {}
+fetched_data_set = set()
 
 
 def execute(entities):
@@ -27,9 +28,12 @@ def execute(entities):
         for dependency_key in entity_dependencies:
             instantiated_entity.set_dependencies_cache(dependency_key, instantiated_entity_map[dependency_key])
 
-        instantiated_entity.load_cache()
-        instantiated_entity.fetch()
-        instantiated_entity.save()
+        if key not in fetched_data_set:
+            instantiated_entity.load_cache()
+            instantiated_entity.fetch()
+            instantiated_entity.save()
+
+            fetched_data_set.add(key)
 
 
 if __name__ == '__main__':

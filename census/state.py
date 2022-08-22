@@ -89,3 +89,31 @@ class StatePopulation(ResourceEntity):
 
         for data_index in range(1, len(population_data)):
             self.records.append({'population': population_data[data_index][2], 'state': population_data[data_index][5]})
+
+
+class StatePopulationByRaceEthnicity(ResourceEntity):
+
+    @staticmethod
+    def dependencies():
+        return [
+            entity_key.census_us_state,
+            entity_key.census_race_ethnicity
+        ]
+
+    def get_state_id(self, record, field):
+        state_cache = self.dependencies_cache[entity_key.census_us_state]
+        return state_cache[record[field]]['id']
+
+    def get_race_ethnicity_id(self, record, field):
+        race_ethnicity_cache = self.dependencies_cache[entity_key.census_race_ethnicity]
+        return race_ethnicity_cache[record[field]]
+
+    def __init__(self):
+        super().__init__()
+
+        self.table_name = 'state_population_2020_by_race_ethnicity'
+        self.fields = [
+            {'field': 'population', 'column': 'population'},
+            {'field': 'state', 'column': 'state_id', 'data': self.get_state_id},
+            {'field': 'race_ethnicity', 'column': 'race_ethnicity_id'}
+        ]

@@ -126,10 +126,8 @@ class CityPopulation(ResourceEntity):
         for state in list_of_states:
             state_name, state_code = state['name'], state['code']
             if '$' in state_code:
-                print(f'Skipping {state_name}')
                 continue
 
-            print(f'Fetching city data for {state_name}')
             city_population_url = f'{base_url}?t={topic}&g={state_code}{global_state_code}&id={data_id}'
             response = requests.request('GET', city_population_url)
             if response.content is None or len(response.content) == 0:
