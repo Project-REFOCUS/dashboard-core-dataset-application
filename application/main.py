@@ -42,6 +42,9 @@ if __name__ == '__main__':
         entity_key.calendar_holiday_date,
         entity_key.census_state_population,
         entity_key.census_county_population,
-        entity_key.census_city_population
+        entity_key.census_city_population,
+        entity_key.cdc_state_cases,
+        entity_key.cdc_state_deaths,
+        entity_key.cdc_state_tests
     ]
     execute(root_entities)

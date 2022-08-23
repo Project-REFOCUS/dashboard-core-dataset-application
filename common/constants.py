@@ -12,6 +12,9 @@ class EntityKey:
     census_county_population = 'census.county_population'
     census_city_population = 'census.city_population'
     census_race_ethnicity = 'census.race_ethnicity'
+    cdc_state_cases = 'cdc.state_cases'
+    cdc_state_deaths = 'cdc.state_deaths'
+    cdc_state_tests = 'cdc.state_tests'
 
 
 entity_key = EntityKey()

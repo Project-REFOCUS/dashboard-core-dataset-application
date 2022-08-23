@@ -5,6 +5,9 @@ from census.county import USCounty, CountyPopulation
 from census.state import USState, StatePopulation
 from census.ethnicity import RaceEthnicity
 from common.constants import entity_key
+from cdc.cases import StateCases
+from cdc.deaths import StateDeaths
+from cdc.tests import StateTests
 
 entity_map = {
     entity_key.calendar_date: CalendarDate,
@@ -19,5 +22,8 @@ entity_map = {
     entity_key.census_state_population: StatePopulation,
     entity_key.census_county_population: CountyPopulation,
     entity_key.census_city_population: CityPopulation,
-    entity_key.census_race_ethnicity: RaceEthnicity
+    entity_key.census_race_ethnicity: RaceEthnicity,
+    entity_key.cdc_state_cases: StateCases,
+    entity_key.cdc_state_deaths: StateDeaths,
+    entity_key.cdc_state_tests: StateTests
 }
