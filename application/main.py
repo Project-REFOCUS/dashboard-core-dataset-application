@@ -45,6 +45,7 @@ if __name__ == '__main__':
         entity_key.census_city_population,
         entity_key.cdc_state_cases,
         entity_key.cdc_state_deaths,
-        entity_key.cdc_state_tests
+        entity_key.cdc_state_tests,
+        entity_key.cdc_state_vaccinations
     ]
     execute(root_entities)

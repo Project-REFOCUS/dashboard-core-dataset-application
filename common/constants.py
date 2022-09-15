@@ -15,6 +15,7 @@ class EntityKey:
     cdc_state_cases = 'cdc.state_cases'
     cdc_state_deaths = 'cdc.state_deaths'
     cdc_state_tests = 'cdc.state_tests'
+    cdc_state_vaccinations = 'cdc.state_vaccinations'
 
 
 entity_key = EntityKey()
