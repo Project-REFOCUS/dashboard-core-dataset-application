@@ -43,26 +43,22 @@ def generate_values_placeholders(length):
     return f'({values_placeholders})'
 
 
-def generate_values_string(values):
-    values_string = ''
+def generate_update_placeholders(fields):
+    fields_string = ''
     delimiter = ''
-    for value in values:
-        values_string += delimiter
-        if isinstance(value, str):
-            replaced_value = value.replace('\'', '\\\'')
-            values_string += f'\'{replaced_value}\''
-        else:
-            values_string += str(value)
-
+    for field in fields:
+        fields_string += delimiter
+        fields_string += f'{field}= %s'
         delimiter = ', '
 
-    return f'({values_string})'
+    return fields_string
 
 
 class MysqlClient:
 
     def __init__(self):
-        self.cache = {}
+        self.insert_cache = {}
+        self.update_cache = {}
 
         self.hostname = os.getenv('MYSQL_HOST')
         self.username = os.getenv('MYSQL_USER')
@@ -96,8 +92,15 @@ class MysqlClient:
     def is_connected(self):
         return self.connection is not None
 
+    def reset_insert_cache(self):
+        self.insert_cache = {'table': None, 'sql': '', 'columns': [], 'values': []}
+
+    def reset_update_cache(self):
+        self.update_cache = {'sql': '', 'columns': [], 'values': []}
+
     def reset_cache(self):
-        self.cache = {'table': None, 'sql': '', 'columns': [], 'values': []}
+        self.reset_insert_cache()
+        self.reset_update_cache()
 
     def transaction_active(self):
         return self.cursor is not None
@@ -116,9 +119,11 @@ class MysqlClient:
         elif not self.transaction_active():
             print('There is no active transaction')
         else:
-            if len(self.cache['sql']) > 0:
-                self.cursor.execute(self.cache['sql'], self.cache['values'])
-                self.reset_cache()
+            if len(self.insert_cache['sql']) > 0:
+                self.cursor.execute(self.insert_cache['sql'], self.insert_cache['values'])
+
+            if len(self.update_cache['sql']) > 0:
+                self.cursor.execute(self.update_cache['sql'], self.update_cache['values'], multi=True)
 
             self.connection.commit()
             self.cursor.close()
@@ -133,17 +138,17 @@ class MysqlClient:
             self.start_transaction()
 
         if not auto_transact:
-            if self.cache['table'] == table_name:
-                if utils.array_equals(columns, self.cache['columns']) and len(self.cache['sql']) < SQL_MAX_LENGTH:
-                    self.cache['values'] = self.cache['values'] + values
-                    self.cache['sql'] += f', {generate_values_placeholders(len(values))}'
+            if self.insert_cache['table'] == table_name:
+                if utils.array_equals(columns, self.insert_cache['columns']) and len(self.insert_cache['sql']) < SQL_MAX_LENGTH:
+                    self.insert_cache['values'] = self.insert_cache['values'] + values
+                    self.insert_cache['sql'] += f', {generate_values_placeholders(len(values))}'
                 else:
-                    self.cursor.execute(self.cache['sql'], self.cache['values'])
-                    self.reset_cache()
+                    self.cursor.execute(self.insert_cache['sql'], self.insert_cache['values'])
+                    self.reset_insert_cache()
                     self.insert(table_name, columns, values)
 
             else:
-                self.cache = {
+                self.insert_cache = {
                     'table': table_name,
                     'columns': columns,
                     'values': values,
@@ -154,9 +159,9 @@ class MysqlClient:
                     )
                 }
 
-        elif self.cache['table'] is not None:
-            self.cursor.execute(self.cache['sql'], self.cache['values'])
-            self.reset_cache()
+        elif self.insert_cache['table'] is not None:
+            self.cursor.execute(self.insert_cache['sql'], self.insert_cache['values'])
+            self.reset_insert_cache()
             self.insert(table_name, columns, values)
 
         else:
@@ -166,6 +171,29 @@ class MysqlClient:
                 generate_values_placeholders(len(values))
             )
             self.cursor.execute(insertion_statement, values)
+
+        if auto_transact:
+            self.commit()
+
+    def update(self, table_name, columns, values, where):
+        auto_transact = False
+        assert len(columns) == len(values), 'columns length must match values length'
+        if self.cursor is None:
+            auto_transact = True
+            self.start_transaction()
+
+        if not auto_transact:
+            if len(self.update_cache['sql']) < SQL_MAX_LENGTH:
+                self.update_cache['values'] = self.update_cache['values'] + values
+                self.update_cache['sql'] += f'UPDATE {table_name} SET {generate_update_placeholders(columns)} WHERE {where};'
+            else:
+                self.cursor.execute(self.update_cache['sql'], self.update_cache['values'], multi=True)
+                self.reset_update_cache()
+                self.update(table_name, columns, values, where)
+
+        else:
+            update_statement = f'UPDATE {table_name} SET {generate_update_placeholders(columns)} WHERE {where};'
+            self.cursor.execute(update_statement, values)
 
         if auto_transact:
             self.commit()

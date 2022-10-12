@@ -14,6 +14,7 @@ class ResourceEntity:
         self.dependencies_cache = None
         self.record_cache = None
         self.table_name = None
+        self.updates = None
         self.records = None
         self.fields = None
 
@@ -21,7 +22,14 @@ class ResourceEntity:
         self.mysql_client.connect()
 
     def skip_record(self, record):
-        return record in self.record_cache
+        return 'id' in record and record['id'] in self.record_cache
+
+    def update_record(self, record):
+        return 'id' in record and record['id'] in self.record_cache
+
+    def create_update_record(self, record):
+        record_id = record['id']
+        return {'fields': [record['field']], 'values': [record['value']], 'clause': f'id = {record_id}'}
 
     def set_dependencies_cache(self, key, dependency):
         if self.dependencies_cache is None:
@@ -39,6 +47,7 @@ class ResourceEntity:
         return self.record_cache
 
     def fetch(self):
+        self.updates = []
         self.records = []
         self.fields = []
 
@@ -56,6 +65,9 @@ class ResourceEntity:
             for record in self.records:
                 columns = []
                 values = []
+
+                if self.update_record(record):
+                    self.updates.append(self.create_update_record(record))
 
                 if self.skip_record(record):
                     records_processed += 1
@@ -91,6 +103,28 @@ class ResourceEntity:
                 progress(records_processed, record_count)
 
             self.mysql_client.commit()
+
+    def has_updates(self):
+        return self.updates is not None and len(self.updates) > 0
+
+    def update(self):
+        if self.mysql_client.is_connected():
+            # TODO: Figure out why transaction won't work with update
+            # self.mysql_client.start_transaction()
+
+            record_count = len(self.updates)
+            records_processed = 0
+
+            for update in self.updates:
+                columns = update['fields']
+                values = update['values']
+
+                self.mysql_client.update(self.table_name, columns, values, update['clause'])
+
+                records_processed += 1
+                progress(records_processed, record_count)
+
+            # self.mysql_client.commit()
 
     def drop_cache(self):
         pass

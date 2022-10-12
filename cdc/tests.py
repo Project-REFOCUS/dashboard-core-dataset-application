@@ -39,23 +39,40 @@ class StateTests(ResourceEntity):
         ]
 
     def load_cache(self):
-        cachable_fields = ['calendar_date_id']
         records = self.mysql_client.select(self.table_name)
         for record in records:
             if self.record_cache is None:
                 self.record_cache = {}
 
-            for field in cachable_fields:
-                self.record_cache[record[field]] = record
+            if record['state_id'] not in self.record_cache:
+                self.record_cache[record['state_id']] = {}
+
+            self.record_cache[record['state_id']][record['calendar_date_id']] = record
 
     def skip_record(self, record):
-        return self.get_calendar_date_id(record, 'date') in self.record_cache
+        state_id = self.get_state_id(record, 'state')
+        calendar_date_id = self.get_calendar_date_id(record, 'date')
+        return state_id in self.record_cache and calendar_date_id in self.record_cache[state_id]
+
+    def update_record(self, record):
+        state_id = self.get_state_id(record, 'state')
+        calendar_date_id = self.get_calendar_date_id(record, 'date')
+        should_update = state_id in self.record_cache
+        should_update = calendar_date_id in self.record_cache[state_id] if should_update else False
+        return should_update and ensure_not_none(record, 'new_test_results_reported', self.record_cache) != self.record_cache[state_id][calendar_date_id]['tests']
+
+    def create_update_record(self, record):
+        state_id = self.get_state_id(record, 'state')
+        calendar_date_id = self.get_calendar_date_id(record, 'date')
+        record_id = self.record_cache[state_id][calendar_date_id]['id']
+        return {'fields': ['tests'], 'values': [ensure_not_none(record, 'new_test_results_reported', self.record_cache)], 'clause': f'id = {record_id}'}
 
     def fetch(self):
         state_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=100&id=4'
         response_content = json.loads(requests.request('GET', state_url).content)
         list_of_states = response_content['response']['geos']['items']
 
+        self.updates = []
         self.records = []
         state_cache = self.dependencies_cache[entity_key.census_us_state]
         for state in list_of_states:
