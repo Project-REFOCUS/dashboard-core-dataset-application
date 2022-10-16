@@ -131,7 +131,6 @@ class CityPopulation(ResourceEntity):
             city_population_url = f'{base_url}?t={topic}&g={state_code}{global_state_code}&id={data_id}'
             response = requests.request('GET', city_population_url)
             if response.content is None or len(response.content) == 0:
-                print(f'Skipping {state_name}')
                 continue
 
             response_content = json.loads(response.content)

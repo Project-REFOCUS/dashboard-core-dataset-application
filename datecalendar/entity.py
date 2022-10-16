@@ -52,7 +52,7 @@ class CalendarDate(ResourceEntity):
         current_date = date(2020, 1, 1)
         week_number = None
 
-        while current_date < date.today():
+        while current_date <= date.today():
             if current_date.month == 1 and current_date.day == 1:
                 week_number = 1
 

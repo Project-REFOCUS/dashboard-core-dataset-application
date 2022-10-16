@@ -17,9 +17,7 @@ def execute(entities):
         object_entity = entity_map[key]
         entity_dependencies = object_entity.dependencies()
 
-        print(f'Executing entity {key}')
         if len(entity_dependencies):
-            print(f'Entity {key} has dependencies')
             execute(entity_dependencies)
 
         instantiated_entity_map[key] = object_entity()
@@ -36,6 +34,8 @@ def execute(entities):
                 instantiated_entity.update()
 
             fetched_data_set.add(key)
+        else:
+            instantiated_entity.load_cache()
 
 
 if __name__ == '__main__':
