@@ -31,6 +31,27 @@ def from_string_to_date(date_string, format_string):
     return datetime.strptime(date_string, format_string).date()
 
 
+def int_or_none(value):
+    try:
+        value = int(value)
+    except ValueError:
+        value = None
+    except TypeError:
+        value = None
+
+    return value
+
+
+def ensure_float(value):
+    try:
+        value = float(value)
+    except ValueError:
+        value = 0.0
+    except TypeError:
+        value = 0.0
+    return value
+
+
 def log(message, newline=True, show_timestamp=True):
     timestamp = str(datetime.now()) if show_timestamp else ''
     sys.stdout.write('\033[1m{}\033[0m {}{}'.format(timestamp, message, '\n' if newline else ''))
