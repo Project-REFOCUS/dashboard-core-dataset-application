@@ -49,6 +49,7 @@ if __name__ == '__main__':
         entity_key.cdc_state_deaths,
         entity_key.cdc_state_tests,
         entity_key.cdc_state_vaccinations,
-        entity_key.police_fatal_shootings
+        entity_key.police_fatal_shootings,
+        entity_key.apha_racism_declarations
     ]
     execute(root_entities)

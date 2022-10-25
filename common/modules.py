@@ -10,6 +10,7 @@ from cdc.deaths import StateDeaths
 from cdc.tests import StateTests
 from cdc.vaccinations import StateVaccinations
 from police.entity import FatalShootings
+from apha.racism import RacismDeclarations
 
 entity_map = {
     entity_key.calendar_date: CalendarDate,
@@ -30,4 +31,5 @@ entity_map = {
     entity_key.cdc_state_tests: StateTests,
     entity_key.cdc_state_vaccinations: StateVaccinations,
     entity_key.police_fatal_shootings: FatalShootings,
+    entity_key.apha_racism_declarations: RacismDeclarations,
 }
