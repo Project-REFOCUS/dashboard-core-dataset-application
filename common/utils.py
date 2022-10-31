@@ -42,6 +42,16 @@ def int_or_none(value):
     return value
 
 
+def ensure_int(value):
+    try:
+        value = int(value)
+    except ValueError:
+        value = 0
+    except TypeError:
+        value = 0
+    return value
+
+
 def ensure_float(value):
     try:
         value = float(value)

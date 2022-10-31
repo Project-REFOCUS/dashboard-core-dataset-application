@@ -45,11 +45,13 @@ if __name__ == '__main__':
         entity_key.census_state_population,
         entity_key.census_county_population,
         entity_key.census_city_population,
-        entity_key.cdc_state_cases,
-        entity_key.cdc_state_deaths,
-        entity_key.cdc_state_tests,
+        # TODO: Will need to refactor these entities as CDC has changed reporting format
+        # entity_key.cdc_state_cases,
+        # entity_key.cdc_state_deaths,
+        # entity_key.cdc_state_tests,
         entity_key.cdc_state_vaccinations,
         entity_key.police_fatal_shootings,
-        entity_key.apha_racism_declarations
+        entity_key.apha_racism_declarations,
+        entity_key.ucla_covid_behind_bars
     ]
     execute(root_entities)

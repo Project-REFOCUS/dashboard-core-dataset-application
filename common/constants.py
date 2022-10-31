@@ -18,6 +18,7 @@ class EntityKey:
     cdc_state_vaccinations = 'cdc.state_vaccinations'
     police_fatal_shootings = 'police.fatal_shootings'
     apha_racism_declarations = 'apha.racism_declarations'
+    ucla_covid_behind_bars = 'ucla.covid_behind_bars'
 
 
 entity_key = EntityKey()
