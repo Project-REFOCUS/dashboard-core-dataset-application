@@ -19,6 +19,7 @@ class EntityKey:
     police_fatal_shootings = 'police.fatal_shootings'
     apha_racism_declarations = 'apha.racism_declarations'
     ucla_covid_behind_bars = 'ucla.covid_behind_bars'
+    osha_closed_complaints = 'osha.osha_closed_complaints'
 
 
 entity_key = EntityKey()

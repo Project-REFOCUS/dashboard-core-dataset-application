@@ -148,5 +148,3 @@ class CalendarDay(ResourceEntity):
 
     def save(self):
         pass
-
-

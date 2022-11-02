@@ -12,6 +12,7 @@ from cdc.vaccinations import StateVaccinations
 from police.entity import FatalShootings
 from apha.racism import RacismDeclarations
 from ucla.covid import CovidBehindBars
+from osha.complaints import OshaClosedComplaints
 
 entity_map = {
     entity_key.calendar_date: CalendarDate,
@@ -33,5 +34,6 @@ entity_map = {
     entity_key.cdc_state_vaccinations: StateVaccinations,
     entity_key.police_fatal_shootings: FatalShootings,
     entity_key.apha_racism_declarations: RacismDeclarations,
-    entity_key.ucla_covid_behind_bars: CovidBehindBars
+    entity_key.ucla_covid_behind_bars: CovidBehindBars,
+    entity_key.osha_closed_complaints: OshaClosedComplaints
 }
