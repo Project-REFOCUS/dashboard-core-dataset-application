@@ -41,7 +41,7 @@ class ResourceEntity:
         self.record_cache = {}
 
     def get_cache(self):
-        if self.record_cache is None:
+        if self.record_cache is None or len(self.record_cache) == 0:
             self.load_cache()
 
         return self.record_cache

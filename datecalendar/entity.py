@@ -35,11 +35,11 @@ class CalendarDate(ResourceEntity):
             for field in cachable_fields:
                 self.record_cache[str(record[field])] = record
 
-    def get_cache(self):
-        if self.record_cache is None:
-            self.load_cache()
-
-        return self.record_cache
+    # def get_cache(self):
+    #     if self.record_cache is None:
+    #         self.load_cache()
+    #
+    #     return self.record_cache
 
     def skip_record(self, record):
         return record['date'] in self.record_cache if self.record_cache is not None else False
@@ -91,11 +91,11 @@ class CalendarMonth(ResourceEntity):
             for field in cachable_fields:
                 self.record_cache[record[field]] = record
 
-    def get_cache(self):
-        if self.record_cache is None:
-            self.load_cache()
-
-        return self.record_cache
+    # def get_cache(self):
+    #     if self.record_cache is None or len(self.record_cache) == 0:
+    #         self.load_cache()
+    #
+    #     return self.record_cache
 
     def skip_record(self, record):
         return record['name'] in self.record_cache if self.record_cache is not None else False
@@ -136,12 +136,6 @@ class CalendarDay(ResourceEntity):
 
             for field in cachable_fields:
                 self.record_cache[record[field]] = record
-
-    def get_cache(self):
-        if self.record_cache is None:
-            self.load_cache()
-
-        return self.record_cache
 
     def fetch(self):
         pass

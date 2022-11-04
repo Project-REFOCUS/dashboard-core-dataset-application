@@ -27,12 +27,6 @@ class CalendarHolidayType(ResourceEntity):
             for field in cachable_fields:
                 self.record_cache[record[field]] = record
 
-    def get_cache(self):
-        if self.record_cache is None:
-            self.load_cache()
-
-        return self.record_cache
-
     def fetch(self):
         pass
 
