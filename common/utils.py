@@ -76,3 +76,8 @@ def progress(value, total):
     if os.getenv('DEBUG_PROGRESS') is not None:
         newline = value == total
         log(f'\rProgress: {percentage(value, total)} - Records processed: {value} of {total}', newline, False)
+
+
+def debug(message):
+    if os.getenv('DEBUG_PROGRESS') is not None:
+        log(message)

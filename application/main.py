@@ -1,5 +1,6 @@
 from common.modules import entity_map
 from common.constants import entity_key
+from common.utils import debug
 
 import sys
 
@@ -27,6 +28,7 @@ def execute(entities):
             instantiated_entity.set_dependencies_cache(dependency_key, instantiated_entity_map[dependency_key])
 
         if key not in fetched_data_set:
+            debug(f'Started {key}...')
             instantiated_entity.load_cache()
             instantiated_entity.fetch()
             instantiated_entity.save()
