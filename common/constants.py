@@ -22,4 +22,10 @@ class EntityKey:
     osha_closed_complaints = 'osha.osha_closed_complaints'
 
 
+class CacheId:
+    list_of_states = 'list_of_states'
+    us_trend_by = 'us_trend_by'
+
+
 entity_key = EntityKey()
+cache_id = CacheId()
