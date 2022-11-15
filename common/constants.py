@@ -20,11 +20,14 @@ class EntityKey:
     apha_racism_declarations = 'apha.racism_declarations'
     ucla_covid_behind_bars = 'ucla.covid_behind_bars'
     osha_closed_complaints = 'osha.osha_closed_complaints'
+    twitter_account = 'twitter.accounts'
+    twitter_account_type = 'twitter.account_type'
 
 
 class CacheId:
     list_of_states = 'list_of_states'
     us_trend_by = 'us_trend_by'
+    twitter_accounts = 'twitter_accounts'
 
 
 entity_key = EntityKey()
