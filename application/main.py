@@ -42,19 +42,20 @@ def execute(entities):
 
 if __name__ == '__main__':
     root_entities = [
-        entity_key.calendar_date,
-        entity_key.calendar_holiday_date,
-        entity_key.census_state_population,
-        entity_key.census_county_population,
-        entity_key.census_city_population,
-        entity_key.cdc_state_cases,
-        entity_key.cdc_state_deaths,
-        entity_key.cdc_state_tests,
-        entity_key.cdc_state_vaccinations,
-        entity_key.police_fatal_shootings,
-        entity_key.apha_racism_declarations,
-        entity_key.ucla_covid_behind_bars,
-        entity_key.osha_closed_complaints,
-        entity_key.twitter_account
+        # entity_key.calendar_date,
+        # entity_key.calendar_holiday_date,
+        # entity_key.census_state_population,
+        # entity_key.census_county_population,
+        # entity_key.census_city_population,
+        # entity_key.cdc_state_cases,
+        # entity_key.cdc_state_deaths,
+        # entity_key.cdc_state_tests,
+        # entity_key.cdc_state_vaccinations,
+        # entity_key.police_fatal_shootings,
+        # entity_key.apha_racism_declarations,
+        # entity_key.ucla_covid_behind_bars,
+        # entity_key.osha_closed_complaints,
+        # entity_key.twitter_account,
+        entity_key.twitter_tweets
     ]
     execute(root_entities)

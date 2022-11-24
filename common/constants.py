@@ -22,6 +22,9 @@ class EntityKey:
     osha_closed_complaints = 'osha.osha_closed_complaints'
     twitter_account = 'twitter.accounts'
     twitter_account_type = 'twitter.account_type'
+    twitter_tweets = 'twitter.tweets'
+    twitter_tweets_terms = 'twitter.tweets_terms'
+    twitter_tweets_terms_frequency = 'twitter.tweets_terms_frequency'
 
 
 class CacheId:

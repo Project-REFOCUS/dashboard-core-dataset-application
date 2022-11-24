@@ -14,6 +14,7 @@ from apha.racism import RacismDeclarations
 from ucla.covid import CovidBehindBars
 from osha.complaints import OshaClosedComplaints
 from twitter.accounts import TwitterAccountType, TwitterAccount
+from twitter.tweets import Tweets
 
 entity_map = {
     entity_key.calendar_date: CalendarDate,
@@ -38,5 +39,6 @@ entity_map = {
     entity_key.ucla_covid_behind_bars: CovidBehindBars,
     entity_key.osha_closed_complaints: OshaClosedComplaints,
     entity_key.twitter_account_type: TwitterAccountType,
-    entity_key.twitter_account: TwitterAccount
+    entity_key.twitter_account: TwitterAccount,
+    entity_key.twitter_tweets: Tweets
 }

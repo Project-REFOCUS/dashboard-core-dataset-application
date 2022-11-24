@@ -25,7 +25,7 @@ class ResourceEntity:
         return 'id' in record and record['id'] in self.record_cache
 
     def update_record(self, record):
-        return 'id' in record and record['id'] in self.record_cache
+        return '' in record and '' in self.record_cache
 
     def create_update_record(self, record):
         record_id = record['id']
@@ -68,6 +68,9 @@ class ResourceEntity:
 
                 if self.update_record(record):
                     self.updates.append(self.create_update_record(record))
+                    records_processed += 1
+                    progress(records_processed, record_count)
+                    continue
 
                 if self.skip_record(record):
                     records_processed += 1

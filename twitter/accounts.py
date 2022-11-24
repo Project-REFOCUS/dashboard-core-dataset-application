@@ -84,14 +84,14 @@ class TwitterAccount(ResourceEntity):
         ]
 
     def load_cache(self):
-        cacheable_fields = ['twitter_id']
+        cacheable_fields = ['id', 'twitter_id']
         records = self.mysql_client.select(self.table_name)
         for record in records:
             if self.record_cache is None:
                 self.record_cache = {}
 
             for field in cacheable_fields:
-                self.record_cache[field] = record
+                self.record_cache[str(record[field])] = record
 
     def skip_record(self, record):
         return self.record_cache is not None and record['twitter_id'] in self.record_cache
