@@ -11,23 +11,23 @@ import io
 URL = 'https://docs.google.com/spreadsheets/d/1v5uSOskUD1En0iY3WcR4zCP_nogYT-8IPjMr9mI_414/pub?single=true&output=csv'
 
 
-def get_twitter_id(record, field, record_cache):
+def get_twitter_id(record, field):
     return ensure_int(record[field])
 
 
-def get_reply_count(record, field, record_cache):
+def get_reply_count(record, field):
     return record[field]['reply_count']
 
 
-def get_retweet_count(record, field, record_cache):
+def get_retweet_count(record, field):
     return record[field]['retweet_count']
 
 
-def get_like_count(record, field, record_cache):
+def get_like_count(record, field):
     return record[field]['like_count']
 
 
-def get_tweet_timestamp(record, field, record_cache):
+def get_tweet_timestamp(record, field):
     return datetime.strptime(record[field], '%Y-%m-%dT%H:%M:%S.000Z')
 
 
@@ -51,7 +51,7 @@ class Tweets(ResourceEntity):
 
     def get_calendar_date_id(self, record, field):
         calendar_date_cache = self.dependencies_cache[entity_key.calendar_date]
-        datetime_timestamp = get_tweet_timestamp(record, field, self.record_cache)
+        datetime_timestamp = get_tweet_timestamp(record, field)
         iso_date = str(datetime_timestamp.date())
         return calendar_date_cache[iso_date]['id']
 
@@ -106,7 +106,7 @@ class Tweets(ResourceEntity):
         today = datetime.today()
         datetime_format = '%Y-%m-%dT00:00:00.000Z'
         start_time = datetime.strftime(today - timedelta(days=5), datetime_format)
-        end_time = datetime.strftime(today + timedelta(days=1), datetime_format)
+        end_time = datetime.strftime(today, datetime_format)
 
         for data in accounts_data:
             username = data['Twitter handle']

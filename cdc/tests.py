@@ -1,7 +1,7 @@
 from .abstract import CovidResourceEntity
 
 
-def ensure_not_none(record, field, record_cache):
+def ensure_not_none(record, field):
     return record[field] if record[field] is not None else 0
 
 
@@ -27,13 +27,13 @@ class StateTests(CovidResourceEntity):
         calendar_date_id = self.get_calendar_date_id(record, 'date')
         should_update = state_id in self.record_cache
         should_update = calendar_date_id in self.record_cache[state_id] if should_update else False
-        return should_update and ensure_not_none(record, '7_day_test_results_reported', self.record_cache) != self.record_cache[state_id][calendar_date_id]['tests']
+        return should_update and ensure_not_none(record, '7_day_test_results_reported') != self.record_cache[state_id][calendar_date_id]['tests']
 
     def create_update_record(self, record):
         state_id = self.get_state_id(record, 'state')
         calendar_date_id = self.get_calendar_date_id(record, 'date')
         record_id = self.record_cache[state_id][calendar_date_id]['id']
-        return {'fields': ['tests'], 'values': [ensure_not_none(record, '7_day_test_results_reported', self.record_cache)], 'clause': f'id = {record_id}'}
+        return {'fields': ['tests'], 'values': [ensure_not_none(record, '7_day_test_results_reported')], 'clause': f'id = {record_id}'}
 
     def fetch(self):
         self.fetch_resource('7_day_test_results_reported')

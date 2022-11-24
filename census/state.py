@@ -6,7 +6,7 @@ import requests
 import json
 
 
-def get_state_abbrev(record, field, record_cache):
+def get_state_abbrev(record, field):
     return state_abbrev_map[record[field]]
 
 

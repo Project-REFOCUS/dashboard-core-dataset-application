@@ -5,8 +5,7 @@ import requests
 import json
 
 
-def get_fips_code(record, *other):
-    field = other[0]
+def get_fips_code(record, field):
     return record[field].split('US')[1].strip()
 
 

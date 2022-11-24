@@ -31,7 +31,7 @@ def should_start_processing(record):
     return start_processing
 
 
-def get_coordinate_value(record, field, record_cache):
+def get_coordinate_value(record, field):
     return ensure_float(record[field])
 
 

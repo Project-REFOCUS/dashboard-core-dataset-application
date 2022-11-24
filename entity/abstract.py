@@ -86,7 +86,7 @@ class ResourceEntity:
                     # Populating the values array
                     if 'data' in field:
                         if isinstance(field['data'], types.FunctionType):
-                            values.append(field['data'](record, field['field'], self.record_cache))
+                            values.append(field['data'](record, field['field']))
                         elif isinstance(field['data'], types.MethodType):
                             values.append(field['data'](record, field['field']))
                         else:

@@ -9,11 +9,11 @@ import io
 URL = 'https://docs.google.com/spreadsheets/d/1v5uSOskUD1En0iY3WcR4zCP_nogYT-8IPjMr9mI_414/pub?single=true&output=csv'
 
 
-def capitalize(record, field, record_cache):
+def capitalize(record, field):
     return record[field].capitalize()
 
 
-def lowercase(record, field, record_cache):
+def lowercase(record, field):
     return record[field].lower()
 
 

@@ -19,23 +19,23 @@ race_ethnicity_mapping = {
 }
 
 
-def get_gender_value(record, field, record_cache):
+def get_gender_value(record, field):
     return 0 if record[field] == 'M' else 1
 
 
-def get_mental_value(record, field, record_cache):
+def get_mental_value(record, field):
     return 1 if record[field] else 0
 
 
-def get_body_camera_value(record, field, record_cache):
+def get_body_camera_value(record, field):
     return 1 if record[field] else 0
 
 
-def get_age_value(record, field, record_cache):
+def get_age_value(record, field):
     return int_or_none(record[field])
 
 
-def get_coordinate_value(record, field, record_cache):
+def get_coordinate_value(record, field):
     return ensure_float(record[field])
 
 
