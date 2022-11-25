@@ -56,6 +56,7 @@ if __name__ == '__main__':
         entity_key.ucla_covid_behind_bars,
         entity_key.osha_closed_complaints,
         entity_key.twitter_account,
-        entity_key.twitter_tweets
+        entity_key.twitter_tweets,
+        entity_key.twitter_tweets_terms
     ]
     execute(root_entities)
