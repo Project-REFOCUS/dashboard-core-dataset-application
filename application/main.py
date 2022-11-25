@@ -57,6 +57,7 @@ if __name__ == '__main__':
         entity_key.osha_closed_complaints,
         entity_key.twitter_account,
         entity_key.twitter_tweets,
-        entity_key.twitter_tweets_terms
+        entity_key.twitter_tweets_terms,
+        entity_key.twitter_tweets_terms_frequency
     ]
     execute(root_entities)
