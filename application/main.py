@@ -60,4 +60,6 @@ if __name__ == '__main__':
         entity_key.twitter_tweets_terms,
         entity_key.twitter_tweets_terms_frequency
     ]
+    debug('Application starting...')
     execute(root_entities)
+    debug('Application finished...')
