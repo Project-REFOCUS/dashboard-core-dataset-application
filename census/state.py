@@ -20,20 +20,11 @@ class USState(ResourceEntity):
             {'field': 'name', 'column': 'name'},
             {'field': 'name', 'column': 'short_name', 'data': get_state_abbrev}
         ]
+        self.cacheable_fields = ['name', 'short_name']
 
-    def skip_record(self, record, *other):
+    def skip_record(self, record):
         state_name = record['name']
         return state_name in ignored_states or state_name in self.record_cache or state_name not in state_abbrev_map
-
-    def load_cache(self):
-        cachable_fields = ['name', 'short_name']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cachable_fields:
-                self.record_cache[record[field]] = record
 
     def fetch(self):
         url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?id=4&size=100'
@@ -59,20 +50,11 @@ class StatePopulation(ResourceEntity):
             {'field': 'population', 'column': 'population'},
             {'field': 'state', 'column': 'state_id', 'data': self.get_state_id}
         ]
-
-    def load_cache(self):
-        cacheable_fields = ['state_id']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cacheable_fields:
-                self.record_cache[record[field]] = record
+        self.cacheable_fields = ['state_id']
 
     def skip_record(self, record):
         state_cache = self.dependencies_cache[entity_key.census_us_state]
-        return state_cache[record['state']]['id'] in self.record_cache
+        return str(state_cache[record['state']]['id']) in self.record_cache
 
     def fetch(self):
         url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=100&id=4'

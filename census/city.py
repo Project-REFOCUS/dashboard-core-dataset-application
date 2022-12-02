@@ -26,16 +26,7 @@ class USCity(ResourceEntity):
             {'field': 'name', 'column': 'name'},
             {'field': 'code', 'column': 'county_id', 'data': self.get_county_id}
         ]
-
-    def load_cache(self):
-        cachable_fields = ['name']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cachable_fields:
-                self.record_cache[record[field]] = record
+        self.cacheable_fields = ['name']
 
     def search_county_for_city(self, record):
         county = None
@@ -96,21 +87,12 @@ class CityPopulation(ResourceEntity):
             {'field': 'population', 'column': 'population'},
             {'field': 'city', 'column': 'city_id', 'data': self.get_city_id}
         ]
-
-    def load_cache(self):
-        cacheable_fields = ['city_id']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cacheable_fields:
-                self.record_cache[record[field]] = record
+        self.cacheable_fields = ['city_id']
 
     def skip_record(self, record):
         city_cache = self.dependencies_cache[entity_key.census_us_city]
         return record['city'] in ignored_cities or record['city'] not in city_cache\
-            or city_cache[record['city']]['id'] in self.record_cache
+            or str(city_cache[record['city']]['id']) in self.record_cache
 
     def fetch(self):
         url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=100&id=4'

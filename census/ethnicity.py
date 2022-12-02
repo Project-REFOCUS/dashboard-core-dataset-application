@@ -11,16 +11,7 @@ class RaceEthnicity(ResourceEntity):
         self.record_cache = None
         self.records = []
         self.fields = []
-
-    def load_cache(self):
-        cachable_fields = ['name']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cachable_fields:
-                self.record_cache[record[field]] = record
+        self.cacheable_fields = ['name']
 
     def save(self):
         pass

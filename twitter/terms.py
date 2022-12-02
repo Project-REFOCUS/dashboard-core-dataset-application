@@ -84,16 +84,7 @@ class TwitterTerms(ResourceEntity):
 
         self.table_name = 'twitter_terms'
         self.fields = [{'field': 'term', 'column': 'word'}]
-
-    def load_cache(self):
-        cacheable_fields = ['word']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cacheable_fields:
-                self.record_cache[record[field]] = record
+        self.cacheable_fields = ['word']
 
     def get_cache(self):
         self.load_cache()

@@ -71,16 +71,7 @@ class Tweets(ResourceEntity):
             {'field': 'author_id', 'column': 'twitter_account_id', 'data': self.get_twitter_account_id},
             {'field': 'created_at', 'column': 'calendar_date_id', 'data': self.get_calendar_date_id}
         ]
-
-    def load_cache(self):
-        cacheable_fields = ['twitter_id']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cacheable_fields:
-                self.record_cache[str(record[field])] = record
+        self.cacheable_fields = ['twitter_id']
 
     def get_cache(self):
         self.load_cache()

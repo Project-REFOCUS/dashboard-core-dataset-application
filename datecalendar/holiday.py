@@ -122,16 +122,7 @@ class CalendarHoliday(ResourceEntity):
             {'field': 'holiday_type_id', 'column': 'holiday_type_id'},
             {'field': 'calendar_date_id', 'column': 'calendar_date_id'}
         ]
-
-    def load_cache(self):
-        cachable_fields = ['name']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cachable_fields:
-                self.record_cache[str(record[field])] = record
+        self.cacheable_fields = ['name']
 
     def skip_record(self, record):
         return record['name'] in self.record_cache if self.record_cache is not None else False

@@ -76,20 +76,11 @@ class CountyPopulation(ResourceEntity):
             {'field': 'population', 'column': 'population'},
             {'field': 'county', 'column': 'county_id', 'data': self.get_county_id}
         ]
-
-    def load_cache(self):
-        cacheable_fields = ['county_id']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cacheable_fields:
-                self.record_cache[record[field]] = record
+        self.cacheable_fields = ['county_id']
 
     def skip_record(self, record):
         county_cache = self.dependencies_cache[entity_key.census_us_county]
-        return county_cache[record['county']]['id'] in self.record_cache
+        return str(county_cache[record['county']]['id']) in self.record_cache
 
     def fetch(self):
         url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=100&id=4'

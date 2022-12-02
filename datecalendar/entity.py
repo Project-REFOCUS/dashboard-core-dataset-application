@@ -24,16 +24,7 @@ class CalendarDate(ResourceEntity):
         ]
         self.record_cache = None
         self.records = None
-
-    def load_cache(self):
-        cachable_fields = ['date']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cachable_fields:
-                self.record_cache[str(record[field])] = record
+        self.cacheable_fields = ['date']
 
     def get_cache(self):
         self.load_cache()

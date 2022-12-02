@@ -64,16 +64,7 @@ class OshaClosedComplaints(ResourceEntity):
             {'field': 'UPA Receipt Date', 'column': 'calendar_date_id', 'data': self.get_calendar_date_id},
             {'field': 'Site City', 'column': 'city_id', 'data': self.get_city_id}
         ]
-
-    def load_cache(self):
-        cacheable_fields = ['upa']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cacheable_fields:
-                self.record_cache[record[field]] = record
+        self.cacheable_fields = ['upa']
 
     def skip_record(self, record):
         return record['UPA #'] in self.record_cache or self.get_city_id(record, 'Site City') is None

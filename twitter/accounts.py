@@ -33,19 +33,19 @@ class TwitterAccountType(ResourceEntity):
 
         self.table_name = 'twitter_account_type'
         self.fields = [{'field': 'name', 'column': 'name', 'data': capitalize}]
+        self.cacheable_fields = ['name']
+
+    def skip_record(self, record):
+        return self.record_cache is not None and record['name'] in self.record_cache
 
     def load_cache(self):
-        cacheable_fields = ['name']
         records = self.mysql_client.select(self.table_name)
         for record in records:
             if self.record_cache is None:
                 self.record_cache = {}
 
-            for field in cacheable_fields:
+            for field in self.cacheable_fields:
                 self.record_cache[record[field].lower()] = record
-
-    def skip_record(self, record):
-        return self.record_cache is not None and record['name'] in self.record_cache
 
     def fetch(self):
         request = cached_request(cache_id.twitter_accounts, 'GET', URL)
@@ -82,19 +82,10 @@ class TwitterAccount(ResourceEntity):
             {'field': 'username', 'data': lowercase},
             {'field': 'type', 'column': 'twitter_account_type_id', 'data': self.get_account_type_id}
         ]
-
-    def load_cache(self):
-        cacheable_fields = ['id', 'twitter_id']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cacheable_fields:
-                self.record_cache[str(record[field])] = record
+        self.cacheable_fields = ['id', 'twitter_id']
 
     def skip_record(self, record):
-        return self.record_cache is not None and record['twitter_id'] in self.record_cache
+        return self.record_cache is not None and str(record['twitter_id']) in self.record_cache
 
     def fetch(self):
         request = cached_request(cache_id.twitter_accounts, 'GET', URL)

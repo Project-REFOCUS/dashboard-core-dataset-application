@@ -83,16 +83,7 @@ class CovidBehindBars(ResourceEntity):
             {'field': 'Residents.Completed', 'column': 'resident_administered_two_dose'},
             {'field': 'Staff.Completed', 'column': 'staff_administered_two_dose'}
         ]
-
-    def load_cache(self):
-        cacheable_fields = ['calendar_date_id']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cacheable_fields:
-                self.record_cache[record[field]] = record
+        self.cacheable_fields = ['calendar_date_id']
 
     def skip_record(self, record):
         return self.get_calendar_date_id(record, 'Date') in self.record_cache

@@ -33,6 +33,7 @@ def execute(entities):
             instantiated_entity.fetch()
             instantiated_entity.save()
             if instantiated_entity.has_updates():
+                debug(f'Updating {key}')
                 instantiated_entity.update()
 
             fetched_data_set.add(key)

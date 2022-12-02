@@ -91,16 +91,7 @@ class FatalShootings(ResourceEntity):
             {'field': 'longitude', 'data': get_coordinate_value},
             {'field': 'latitude', 'data': get_coordinate_value}
         ]
-
-    def load_cache(self):
-        cachable_fields = ['public_id']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cachable_fields:
-                self.record_cache[str(record[field])] = record
+        self.cacheable_fields = ['public_id']
 
     def skip_record(self, record):
         return (record['id'] in self.record_cache if self.record_cache is not None else False)\
