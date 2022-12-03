@@ -69,8 +69,8 @@ class TwitterAccount(ResourceEntity):
         return [entity_key.twitter_account_type]
 
     def get_account_type_id(self, record, field):
-        account_type_cache = self.dependencies_cache[entity_key.twitter_account_type]
-        return account_type_cache[record[field]]['id']
+        account_type_entity = self.dependencies_map[entity_key.twitter_account_type]
+        return account_type_entity.get_cached_value(record[field])['id']
 
     def __init__(self):
         super().__init__()

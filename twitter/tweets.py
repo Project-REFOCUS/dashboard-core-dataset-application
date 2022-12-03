@@ -73,6 +73,18 @@ class Tweets(ResourceEntity):
         ]
         self.cacheable_fields = ['twitter_id']
 
+    def load_cache(self):
+        joined_table = f'{self.table_name},calendar_date'
+        start_date = str((datetime.today() - timedelta(days=7)).date())
+        where_clause = f'{self.table_name}.calendar_date_id = calendar_date.id and calendar_date.date > {start_date}'
+        records = self.mysql_client.select(joined_table, fields=self.cacheable_fields, where=where_clause)
+        for record in records:
+            if self.record_cache is None:
+                self.record_cache = {}
+
+            for field in self.cacheable_fields:
+                self.record_cache[str(record[field])] = record
+
     def get_cache(self):
         self.load_cache()
         return self.record_cache

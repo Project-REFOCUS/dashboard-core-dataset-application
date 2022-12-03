@@ -17,9 +17,9 @@ class USCounty(ResourceEntity):
         return [entity_key.census_us_state]
 
     def get_state_id(self, record, field):
-        state_cache = self.dependencies_cache[entity_key.census_us_state]
+        state_entity = self.dependencies_map[entity_key.census_us_state]
         state_name = record[field].split(',')[1].strip()
-        return state_cache[state_name]['id']
+        return state_entity.get_cached_value(state_name)['id']
 
     def __init__(self):
         super().__init__()
@@ -30,21 +30,13 @@ class USCounty(ResourceEntity):
             {'field': 'code', 'column': 'fips', 'data': get_fips_code},
             {'field': 'name', 'column': 'state_id', 'data': self.get_state_id}
         ]
-
-    def load_cache(self):
-        cachable_fields = ['name', 'fips']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cachable_fields:
-                self.record_cache[record[field]] = record
+        self.cacheable_fields = ['name', 'fips']
 
     def skip_record(self, record):
-        state_cache = self.dependencies_cache[entity_key.census_us_state]
+        state_entity = self.dependencies_map[entity_key.census_us_state]
         county_name, state_name = record['name'].split(',') if ',' in record['name'] else ['', '']
-        return state_name.strip() not in state_cache or record['name'] in self.record_cache
+        return state_entity.get_cached_value(state_name.strip()) is None or\
+            self.get_cached_value(record['name']) is not None
 
     def fetch(self):
         url = f'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900&id=5&showComponents=false'
@@ -65,8 +57,8 @@ class CountyPopulation(ResourceEntity):
         return [entity_key.census_us_county]
 
     def get_county_id(self, record, field):
-        county_cache = self.dependencies_cache[entity_key.census_us_county]
-        return county_cache[record[field]]['id']
+        county_entity = self.dependencies_map[entity_key.census_us_county]
+        return county_entity.get_cached_value(record[field])['id']
 
     def __init__(self):
         super().__init__()
@@ -79,8 +71,9 @@ class CountyPopulation(ResourceEntity):
         self.cacheable_fields = ['county_id']
 
     def skip_record(self, record):
-        county_cache = self.dependencies_cache[entity_key.census_us_county]
-        return str(county_cache[record['county']]['id']) in self.record_cache
+        county_entity = self.dependencies_map[entity_key.census_us_county]
+        county_id = county_entity.get_cached_value(record['county'])
+        return self.get_cached_value(county_id) is not None
 
     def fetch(self):
         url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=100&id=4'

@@ -51,18 +51,7 @@ class CalendarHolidayDate(ResourceEntity):
             {'field': 'holiday_id', 'column': 'holiday_id'},
             {'field': 'calendar_date_id', 'column': 'calendar_date_id'}
         ]
-        self.record_cache = None
-        self.records = None
-
-    def load_cache(self):
-        cachable_fields = ['calendar_date_id']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cachable_fields:
-                self.record_cache[str(record[field])] = record
+        self.cacheable_fields = ['calendar_date_id']
 
     def skip_record(self, record):
         return str(record['calendar_date_id']) in self.record_cache if self.record_cache is not None else False
@@ -75,8 +64,8 @@ class CalendarHolidayDate(ResourceEntity):
         date_index = 1
         name_index = 2
 
-        calendar_date_cache = self.dependencies_cache[entity_key.calendar_date]
-        holiday_cache = self.dependencies_cache[entity_key.calendar_holiday]
+        calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
+        holiday_entity = self.dependencies_map[entity_key.calendar_holiday]
         format_string = '%b %d %Y'
 
         self.records = []
@@ -95,8 +84,8 @@ class CalendarHolidayDate(ResourceEntity):
 
                 if holiday_date < date.today():
                     self.records.append({
-                        'holiday_id': holiday_cache[name_data]['id'],
-                        'calendar_date_id': calendar_date_cache[str(holiday_date)]['id']
+                        'holiday_id': holiday_entity.get_cached_value(name_data)['id'],
+                        'calendar_date_id': calendar_date_entity.get_cached_value(holiday_date)['id']
                     })
 
             year += 1

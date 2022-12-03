@@ -51,25 +51,26 @@ class FatalShootings(ResourceEntity):
         ]
 
     def get_calendar_date_id(self, record, field):
-        calendar_date_cache = self.dependencies_cache[entity_key.calendar_date]
+        calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
         iso_date = record[field]
-        return calendar_date_cache[iso_date]['id']
+        return calendar_date_entity.get_cached_value(iso_date)['id']
 
     def get_city_id(self, record, field):
-        census_city_cache = self.dependencies_cache[entity_key.census_us_city]
-        census_state_cache = self.dependencies_cache[entity_key.census_us_state]
+        city_entity = self.dependencies_map[entity_key.census_us_city]
+        state_entity = self.dependencies_map[entity_key.census_us_state]
         record_city_value = record[field]
-        state_name = census_state_cache[record['state']]['name']
+        state_name = state_entity.get_cached_value(record['state'])['name']
         city_key = f'{record_city_value} city, {state_name}'
-        return census_city_cache[city_key]['id'] if city_key in census_city_cache else 0
+        city = city_entity.get_cached_value(city_key)
+        return city['id'] if city is not None else 0
 
     def get_race_ethnicity_id(self, record, field):
-        census_race_ethnicity_cache = self.dependencies_cache[entity_key.census_race_ethnicity]
+        race_ethnicity_entity = self.dependencies_map[entity_key.census_race_ethnicity]
         race_ethnicity_name = 'Unknown'
         if record[field] in race_ethnicity_mapping:
             race_ethnicity_name = race_ethnicity_mapping[record[field]]
 
-        return census_race_ethnicity_cache[race_ethnicity_name]['id']
+        return race_ethnicity_entity.get_cached_value(race_ethnicity_name)['id']
 
     def __init__(self):
         super().__init__()

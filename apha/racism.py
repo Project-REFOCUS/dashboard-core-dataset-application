@@ -66,17 +66,18 @@ class RacismDeclarations(ResourceEntity):
             return self.get_address_and_by_coordinates(latitude, longitude, retry=True)
 
     def get_calendar_date_id(self, record, field):
-        calendar_date_cache = self.dependencies_cache[entity_key.calendar_date]
+        calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
         iso_date = None
         if MM_DD_YYYY_PATTERN.match(record[field]) is not None:
             iso_date = str(datetime.strptime(record[field], '%m/%d/%Y').date())
         elif MM_DD_YY_PATTERN.match(record[field]) is not None:
             iso_date = str(datetime.strptime(record[field], '%m/%d/%y').date())
 
-        return calendar_date_cache[iso_date]['id'] if iso_date in calendar_date_cache else None
+        calendar_date = calendar_date_entity.get_cached_value(iso_date)
+        return calendar_date['id'] if calendar_date is not None else calendar_date
 
     def get_city_id(self, record, field):
-        city_cache = self.dependencies_cache[entity_key.census_us_city]
+        city_entity = self.dependencies_map[entity_key.census_us_city]
         address = self.get_address_and_by_coordinates(record['Latitude'], record['Longitude'])
         if field not in address and 'town' not in address:
             return None
@@ -84,7 +85,8 @@ class RacismDeclarations(ResourceEntity):
         city_name = address[field] if field in address else address['town']
         state_name = address['state']
         city_cache_key = f'{city_name} city, {state_name}'
-        return city_cache[city_cache_key]['id'] if city_cache_key in city_cache else None
+        city = city_entity.get_cached_value(city_cache_key)
+        return city['id'] if city is not None else city
 
     def __init__(self):
         super().__init__()
@@ -102,16 +104,7 @@ class RacismDeclarations(ResourceEntity):
             {'field': 'Declaration', 'column': 'declaration'},
             {'field': 'city', 'column': 'city_id', 'data': self.get_city_id}
         ]
-
-    def load_cache(self):
-        cacheable_fields = ['entity_name']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cacheable_fields:
-                self.record_cache[str(record[field])] = record
+        self.cacheable_fields = ['entity_name']
 
     def skip_record(self, record):
         return record['Entity'] in self.record_cache or self.get_city_id(record, 'city') is None\

@@ -36,8 +36,8 @@ class CalendarDate(ResourceEntity):
     def fetch(self):
         self.records = []
 
-        calendar_month_cache = self.dependencies_cache[entity_key.calendar_month]
-        calendar_day_cache = self.dependencies_cache[entity_key.calendar_day]
+        calendar_month_entity = self.dependencies_map[entity_key.calendar_month]
+        calendar_day_entity = self.dependencies_map[entity_key.calendar_day]
         current_date = date(2020, 1, 1)
         week_number = None
 
@@ -48,8 +48,8 @@ class CalendarDate(ResourceEntity):
             self.records.append({
                 'date': str(current_date),
                 'week_number': week_number,
-                'calendar_month_id': calendar_month_cache[current_date.strftime('%B')]['id'],
-                'calendar_day_id': calendar_day_cache[current_date.strftime('%A')]['id']
+                'calendar_month_id': calendar_month_entity.get_cached_value(current_date.strftime('%B'))['id'],
+                'calendar_day_id': calendar_day_entity.get_cached_value(current_date.strftime('%A'))['id']
             })
             current_date += timedelta(days=1)
             if current_date.strftime('%A') == 'Sunday':
@@ -69,16 +69,7 @@ class CalendarMonth(ResourceEntity):
             {'field': 'short_name', 'column': 'short_name'},
             {'field': 'quarter', 'column': 'quarter'}
         ]
-
-    def load_cache(self):
-        cachable_fields = ['name', 'short_name']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cachable_fields:
-                self.record_cache[record[field]] = record
+        self.cacheable_fields = ['name', 'short_name']
 
     def skip_record(self, record):
         return record['name'] in self.record_cache if self.record_cache is not None else False
@@ -109,16 +100,7 @@ class CalendarDay(ResourceEntity):
             {'field': 'name'},
             {'field': 'short_name'}
         ]
-
-    def load_cache(self):
-        cachable_fields = ['name', 'short_name']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cachable_fields:
-                self.record_cache[record[field]] = record
+        self.cacheable_fields = ['name', 'short_name']
 
     def fetch(self):
         pass

@@ -12,6 +12,7 @@ class ResourceEntity:
 
     def __init__(self):
         self.dependencies_cache = None
+        self.dependencies_map = None
         self.cacheable_fields = None
         self.record_cache = None
         self.table_name = None
@@ -38,6 +39,12 @@ class ResourceEntity:
 
         self.dependencies_cache[key] = dependency.get_cache()
 
+    def set_dependencies(self, key, dependency):
+        if self.dependencies_map is None:
+            self.dependencies_map = {}
+
+        self.dependencies_map[key] = dependency
+
     def load_cache(self):
         if self.cacheable_fields is not None:
             records = self.mysql_client.select(self.table_name)
@@ -47,6 +54,10 @@ class ResourceEntity:
 
                 for field in self.cacheable_fields:
                     self.record_cache[str(record[field])] = record
+
+    def get_cached_value(self, key):
+        cache_key = str(key)
+        return self.record_cache[cache_key] if cache_key in self.record_cache else None
 
     def get_cache(self):
         if self.record_cache is None or len(self.record_cache) == 0:

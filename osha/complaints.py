@@ -38,15 +38,18 @@ class OshaClosedComplaints(ResourceEntity):
 
     # TODO: Need to create a more robust city name resolution algorithm to reliably capture more data sets
     def get_city_id(self, record, field):
-        city_cache = self.dependencies_cache[entity_key.census_us_city]
-        state_cache = self.dependencies_cache[entity_key.census_us_state]
+        city_entity = self.dependencies_map[entity_key.census_us_city]
+        state_entity = self.dependencies_map[entity_key.census_us_state]
         capitalized_city_name = record[field].capitalize()
-        state_name = state_cache[record['Site State']]['name'] if record['Site State'] in state_cache else None
+        state = state_entity.get_cached_value(record['Site State'])
+        state_name = state['name'] if state is not None else state
         city_cache_key = f'{capitalized_city_name} city, {state_name}'
-        if city_cache_key not in city_cache:
+        city = city_entity.get_cached_value(city_cache_key)
+        if city is None:
             city_cache_key = f'{capitalized_city_name} village, {state_name}'
+            city = city_entity.get_cached_value(city_cache_key)
 
-        return city_cache[city_cache_key]['id'] if city_cache_key in city_cache else None
+        return city['id'] if city is not None else city
 
     def __init__(self):
         super().__init__()

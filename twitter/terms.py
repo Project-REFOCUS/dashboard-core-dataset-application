@@ -1,5 +1,6 @@
 from common.constants import entity_key
 from common.service import cached_query
+from datetime import datetime, timedelta
 from entity.abstract import ResourceEntity
 
 import re
@@ -130,29 +131,19 @@ class TwitterTermsFrequency(ResourceEntity):
             {'field': 'twitter_terms_id'},
             {'field': 'tweets_id'}
         ]
-
-    def create_twitter_terms_dependency_cache(self):
-        cacheable_fields = ['word']
-        twitter_terms_table = 'twitter_terms'
-        records = self.mysql_client.select(twitter_terms_table)
-        for record in records:
-            if self.dependencies_cache is None:
-                self.dependencies_cache = {}
-
-            if entity_key.twitter_tweets_terms not in self.dependencies_cache:
-                self.dependencies_cache[entity_key.twitter_tweets_terms] = {}
-
-            for field in cacheable_fields:
-                self.dependencies_cache[entity_key.twitter_tweets_terms][record[field]] = record
+        self.cacheable_fields = ['twitter_terms_id']
 
     def load_cache(self):
-        cacheable_fields = ['twitter_terms_id']
-        records = self.mysql_client.select(self.table_name)
+        joined_table = f'{self.table_name},tweets,calendar_date'
+        start_date = str((datetime.today() - timedelta(days=7)).date())
+        where_clause = f'{self.table_name}.tweets_id = tweets.id and tweets.calendar_date_id = calendar_date.id and calendar_date.date > {start_date}'
+        fields = self.cacheable_fields + ['tweets_id']
+        records = self.mysql_client.select(joined_table, fields=fields, where=where_clause)
         for record in records:
             if self.record_cache is None:
                 self.record_cache = {}
 
-            for field in cacheable_fields:
+            for field in self.cacheable_fields:
                 if record[field] not in self.record_cache:
                     self.record_cache[record[field]] = set()
 
@@ -170,11 +161,7 @@ class TwitterTermsFrequency(ResourceEntity):
 
     def fetch(self):
         twitter_tweets_table = 'tweets'
-        # twitter_terms_table = 'twitter_terms'
         tweet_results = cached_query(entity_key.twitter_tweets, twitter_tweets_table, ['id', 'tweet'])
-        # terms_results = self.mysql_client.select(twitter_terms_table)
-        # twitter_tweets_terms_cache = self.dependencies_cache[entity_key.twitter_tweets_terms]
-        # self.create_twitter_terms_dependency_cache()
 
         self.records = []
         self.updates = []
@@ -198,7 +185,7 @@ class TwitterTermsFrequency(ResourceEntity):
 
                     term_frequency_map[tweet_object['id']]['frequency'] += 1
 
-        twitter_tweets_terms_cache = self.dependencies_cache[entity_key.twitter_tweets_terms]
+        twitter_terms_entity = self.dependencies_map[entity_key.twitter_tweets_terms]
         for tweet in tweet_results:
             tweet_id = tweet['id']
 
@@ -206,6 +193,6 @@ class TwitterTermsFrequency(ResourceEntity):
                 frequency_object = term_frequency_map[tweet_id]
                 self.records.append({
                     'frequency': frequency_object['frequency'],
-                    'twitter_terms_id': twitter_tweets_terms_cache[frequency_object['term']]['id'],
+                    'twitter_terms_id': twitter_terms_entity.get_cached_value(frequency_object['term'])['id'],
                     'tweets_id': tweet_id
                 })

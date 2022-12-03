@@ -39,8 +39,8 @@ class StatePopulation(ResourceEntity):
         return [entity_key.census_us_state]
 
     def get_state_id(self, record, field):
-        state_cache = self.dependencies_cache[entity_key.census_us_state]
-        return state_cache[record[field]]['id']
+        state_entity = self.dependencies_map[entity_key.census_us_state]
+        return state_entity.get_cached_value(record[field])['id']
 
     def __init__(self):
         super().__init__()
@@ -53,8 +53,9 @@ class StatePopulation(ResourceEntity):
         self.cacheable_fields = ['state_id']
 
     def skip_record(self, record):
-        state_cache = self.dependencies_cache[entity_key.census_us_state]
-        return str(state_cache[record['state']]['id']) in self.record_cache
+        state_entity = self.dependencies_map[entity_key.census_us_state]
+        state = state_entity.get_cached_value(record['state'])
+        return self.get_cached_value(state['id']) is not None
 
     def fetch(self):
         url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=100&id=4'

@@ -25,7 +25,8 @@ def execute(entities):
         instantiated_entity = instantiated_entity_map[key]
 
         for dependency_key in entity_dependencies:
-            instantiated_entity.set_dependencies_cache(dependency_key, instantiated_entity_map[dependency_key])
+            # instantiated_entity.set_dependencies_cache(dependency_key, instantiated_entity_map[dependency_key])
+            instantiated_entity.set_dependencies(dependency_key, instantiated_entity_map[dependency_key])
 
         if key not in fetched_data_set:
             debug(f'Started {key}...')

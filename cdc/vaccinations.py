@@ -39,12 +39,12 @@ class StateVaccinations(ResourceEntity):
         ]
 
     def get_calendar_date_id(self, record, field):
-        calendar_date_cache = self.dependencies_cache[entity_key.calendar_date]
-        return calendar_date_cache[record[field]]['id']
+        calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
+        return calendar_date_entity.get_cached_value(record[field])['id']
 
     def get_state_id(self, record, field):
-        state_cache = self.dependencies_cache[entity_key.census_us_state]
-        return state_cache[record[field]]['id']
+        state_entity = self.dependencies_map[entity_key.census_us_state]
+        return state_entity.get_cached_value(record[field])['id']
 
     def __init__(self):
         super().__init__()
@@ -58,16 +58,7 @@ class StateVaccinations(ResourceEntity):
             {'field': 'administered_one_dose'},
             {'field': 'administered_two_dose'}
         ]
-
-    def load_cache(self):
-        cacheable_fields = ['calendar_date_id']
-        records = self.mysql_client.select(self.table_name)
-        for record in records:
-            if self.record_cache is None:
-                self.record_cache = {}
-
-            for field in cacheable_fields:
-                self.record_cache[record[field]] = record
+        self.cacheable_fields = ['calendar_date_id']
 
     def skip_record(self, record):
         return self.get_calendar_date_id(record, 'date') in self.record_cache
@@ -106,20 +97,20 @@ class StateVaccinations(ResourceEntity):
         response_content = response.content.decode('utf-8')
         vaccines_raw_data = list(csv.DictReader(io.StringIO(response_content)))
 
-        state_cache = self.dependencies_cache[entity_key.census_us_state]
+        state_entity = self.dependencies_map[entity_key.census_us_state]
         vaccination_data_by_state = {}
 
         for state in list_of_states:
             state_name = state['name']
-            vaccination_data_by_state[state_name] = {} if state_name in state_cache else None
+            state_object = state_entity.get_cached_value(state_name)
+            vaccination_data_by_state[state_name] = {} if state_object is not None else None
 
         for data in vaccines_raw_data:
             iso_date = str(from_string_to_date(data['Date'], '%m/%d/%Y'))
             location = data['Location']
+            state = state_entity.get_cached_value(location)
 
-            if location in state_cache:
-                state = state_cache[location]
-
+            if state is not None:
                 vaccination_data_by_state[state['name']][iso_date] = data
 
         self.records = []
@@ -133,7 +124,8 @@ class StateVaccinations(ResourceEntity):
 
             for state in list_of_states:
                 state_name = state['name']
-                if state_name in state_cache and state_name in vaccination_data_by_state:
+                state_object = state_entity.get_cached_value(state_name)
+                if state_object is not None and state_name in vaccination_data_by_state:
 
                     if iso_date_key in vaccination_data_by_state[state_name]:
                         vaccination_data = vaccination_data_by_state[state_name][iso_date_key]

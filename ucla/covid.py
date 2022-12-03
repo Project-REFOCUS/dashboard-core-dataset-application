@@ -57,12 +57,13 @@ class CovidBehindBars(ResourceEntity):
         ]
 
     def get_calendar_date_id(self, record, field):
-        calendar_date_cache = self.dependencies_cache[entity_key.calendar_date]
-        return calendar_date_cache[record[field]]['id']
+        calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
+        return calendar_date_entity.get_cached_value(record[field])['id']
 
     def get_state_id(self, record, field):
-        state_cache = self.dependencies_cache[entity_key.census_us_state]
-        return state_cache[record[field]]['id'] if record[field] in state_cache else None
+        state_entity = self.dependencies_map[entity_key.census_us_state]
+        state = state_entity.get_cached_value(record[field])
+        return state['id'] if state is not None else state
 
     def __init__(self):
         super().__init__()
@@ -132,20 +133,20 @@ class CovidBehindBars(ResourceEntity):
         response_content = response.content.decode('utf-8')
         raw_data = list(csv.DictReader(io.StringIO(response_content)))
 
-        state_cache = self.dependencies_cache[entity_key.census_us_state]
+        state_entity = self.dependencies_map[entity_key.census_us_state]
         covid_behind_bars_data_by_state = {}
 
         for state in list_of_states:
             state_name = state['name']
-            covid_behind_bars_data_by_state[state_name] = {} if state_name in state_cache else None
+            state_object = state_entity.get_cached_value(state_name)
+            covid_behind_bars_data_by_state[state_name] = {} if state_object is not None else state_object
 
         for data in raw_data:
             iso_date = data['Date']
-            state = data['State']
+            state_name = data['State']
+            state = state_entity.get_cached_value(state_name)
 
-            if state in state_cache:
-                state = state_cache[state]
-
+            if state is not None:
                 covid_behind_bars_data_by_state[state['name']][iso_date] = data
 
         self.records = []
@@ -160,7 +161,8 @@ class CovidBehindBars(ResourceEntity):
 
             for state in list_of_states:
                 state_name = state['name']
-                if state_name in state_cache and state_name in covid_behind_bars_data_by_state:
+                state_object = state_entity.get_cached_value(state_name)
+                if state_object is not None and state_name in covid_behind_bars_data_by_state:
 
                     if iso_date_key in covid_behind_bars_data_by_state[state_name]:
                         covid_behind_bars_data = covid_behind_bars_data_by_state[state_name][iso_date_key]

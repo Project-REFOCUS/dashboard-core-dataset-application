@@ -20,12 +20,12 @@ class CovidResourceEntity(ResourceEntity):
         ]
 
     def get_calendar_date_id(self, record, field):
-        calendar_date_cache = self.dependencies_cache[entity_key.calendar_date]
-        return calendar_date_cache[record[field]]['id']
+        calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
+        return calendar_date_entity.get_cached_value(record[field])['id']
 
     def get_state_id(self, record, field):
-        state_cache = self.dependencies_cache[entity_key.census_us_state]
-        return state_cache[record[field]]['id']
+        state_entity = self.dependencies_map[entity_key.census_us_state]
+        return state_entity.get_cached_value(record[field])['id']
 
     def __init__(self):
         super().__init__()
@@ -61,11 +61,12 @@ class CovidResourceEntity(ResourceEntity):
 
         self.updates = []
         self.records = []
-        state_cache = self.dependencies_cache[entity_key.census_us_state]
+        state_entity = self.dependencies_map[entity_key.census_us_state]
         records_by_state = {}
         for state in list_of_states:
-            if state['name'] in state_cache:
-                state_abbrev = state_cache[state['name']]['short_name']
+            state_object = state_entity.get_cached_value(state['name'])
+            if state_object is not None:
+                state_abbrev = state_object['short_name']
                 request_id = f'{cache_id.us_trend_by}_{state_abbrev}'
                 cdc_url = f'https://covid.cdc.gov/covid-data-tracker/COVIDData/getAjaxData?id={request_id}'
                 response = cached_request(request_id, 'GET', cdc_url)

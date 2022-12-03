@@ -13,10 +13,9 @@ class USCity(ResourceEntity):
         return [entity_key.census_us_county]
 
     def get_county_id(self, record, field):
-        county_cache = self.dependencies_cache[entity_key.census_us_county]
+        county_entity = self.dependencies_map[entity_key.census_us_county]
         county_fips_code = record[field].split('US')[1][0:5]
-        return county_cache[county_fips_code]['id'] if county_fips_code in county_cache\
-            else self.record_cache[record['code']]['id']
+        return county_entity.get_cached_value(county_fips_code)['id']
 
     def __init__(self):
         super().__init__()
@@ -38,8 +37,8 @@ class USCity(ResourceEntity):
             county_name = name_data[0].replace('(part)', '').strip()
             state_name = name_data[2].strip()
             county_cache_key = f'{county_name}, {state_name}'
-            county_cache = self.dependencies_cache[entity_key.census_us_county]
-            county = county_cache[county_cache_key] if county_cache_key in county_cache else None
+            county_entity = self.dependencies_map[entity_key.census_us_county]
+            county = county_entity.get_cached_value(county_cache_key)
 
             if county is not None:
                 self.record_cache[record['code']] = county
@@ -47,11 +46,12 @@ class USCity(ResourceEntity):
         return county
 
     def skip_record(self, record):
-        county_cache = self.dependencies_cache[entity_key.census_us_county]
+        county_entity = self.dependencies_map[entity_key.census_us_county]
         county_fips_code = record['code'].split('US')[1][0:5]
-        if record['name'] not in self.record_cache:
-            county = county_cache[county_fips_code] if county_fips_code in county_cache\
-                else self.search_county_for_city(record)
+        if self.get_cached_value(record['name']) is None:
+            county = county_entity.get_cached_value(county_fips_code)
+            if county is None:
+                self.search_county_for_city(record)
         else:
             county = None
 
@@ -76,8 +76,8 @@ class CityPopulation(ResourceEntity):
         return [entity_key.census_us_city]
 
     def get_city_id(self, record, field):
-        city_cache = self.dependencies_cache[entity_key.census_us_city]
-        return city_cache[record[field]]['id']
+        city_entity = self.dependencies_map[entity_key.census_us_city]
+        return city_entity.get_cached_value(record[field])['id']
 
     def __init__(self):
         super().__init__()
@@ -90,9 +90,9 @@ class CityPopulation(ResourceEntity):
         self.cacheable_fields = ['city_id']
 
     def skip_record(self, record):
-        city_cache = self.dependencies_cache[entity_key.census_us_city]
-        return record['city'] in ignored_cities or record['city'] not in city_cache\
-            or str(city_cache[record['city']]['id']) in self.record_cache
+        city_entity = self.dependencies_map[entity_key.census_us_city]
+        city = city_entity.get_cached_value(record['city'])
+        return record['city'] in ignored_cities or city is None or self.get_cached_value(city['id']) is not None
 
     def fetch(self):
         url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=100&id=4'
