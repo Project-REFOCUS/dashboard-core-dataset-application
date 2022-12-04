@@ -160,8 +160,11 @@ class TwitterTermsFrequency(ResourceEntity):
             record['tweets_id'] in self.record_cache[record['twitter_terms_id']]
 
     def fetch(self):
-        twitter_tweets_table = 'tweets'
-        tweet_results = cached_query(entity_key.twitter_tweets, twitter_tweets_table, ['id', 'tweet'])
+        tweets_table = 'tweets'
+        joined_table = f'{tweets_table},calendar_date'
+        start_date = str((datetime.today() - timedelta(days=7)).date())
+        where_clause = f'{tweets_table}.calendar_date_id = calendar_date.id and calendar_date.date > {start_date}'
+        tweet_results = cached_query(entity_key.twitter_tweets, joined_table, ['id', 'tweet'], where_clause)
 
         self.records = []
         self.updates = []

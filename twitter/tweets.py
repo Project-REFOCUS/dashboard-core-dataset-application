@@ -1,5 +1,5 @@
 from common.constants import entity_key, cache_id
-from common.service import cached_request
+from common.service import cached_request, cached_query
 from common.utils import ensure_int
 from datetime import datetime, timedelta
 from entity.abstract import ResourceEntity
@@ -79,7 +79,7 @@ class Tweets(ResourceEntity):
         joined_table = f'{self.table_name},calendar_date'
         start_date = str((datetime.today() - timedelta(days=7)).date())
         where_clause = f'{self.table_name}.calendar_date_id = calendar_date.id and calendar_date.date > {start_date}'
-        records = self.mysql_client.select(joined_table, fields=self.cacheable_fields, where=where_clause)
+        records = cached_query(entity_key.twitter_tweets, joined_table, self.cacheable_fields, where_clause)
         for record in records:
             if self.record_cache is None:
                 self.record_cache = {}
