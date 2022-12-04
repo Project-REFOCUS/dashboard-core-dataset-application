@@ -38,22 +38,24 @@ class Tweets(ResourceEntity):
         return [entity_key.calendar_date, entity_key.twitter_account]
 
     def get_tweet_url(self, record, field):
-        twitter_account_cache = self.dependencies_cache[entity_key.twitter_account]
+        twitter_account_entity = self.dependencies_map[entity_key.twitter_account]
         author_id = record['author_id']
         twitter_id = record[field]
-        username = twitter_account_cache[author_id]['username'] if author_id in twitter_account_cache else None
+        twitter_account = twitter_account_entity.get_cached_value(author_id)
+        username = twitter_account['username'] if twitter_account is not None else twitter_account
         return f'https://twitter.com/{username}/status/{twitter_id}' if username is not None else ''
 
     def get_twitter_account_id(self, record, field):
-        twitter_account_cache = self.dependencies_cache[entity_key.twitter_account]
+        twitter_account_entity = self.dependencies_map[entity_key.twitter_account]
         author_id = record[field]
-        return twitter_account_cache[author_id]['id'] if author_id in twitter_account_cache else None
+        twitter_account = twitter_account_entity.get_cached_value(author_id)
+        return twitter_account['id'] if twitter_account is not None else None
 
     def get_calendar_date_id(self, record, field):
-        calendar_date_cache = self.dependencies_cache[entity_key.calendar_date]
+        calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
         datetime_timestamp = get_tweet_timestamp(record, field)
         iso_date = str(datetime_timestamp.date())
-        return calendar_date_cache[iso_date]['id']
+        return calendar_date_entity.get_cached_value(iso_date)['id']
 
     def __init__(self):
         super().__init__()
