@@ -31,6 +31,8 @@ class CacheId:
     list_of_states = 'list_of_states'
     us_trend_by = 'us_trend_by'
     twitter_accounts = 'twitter_accounts'
+    tweets_by_twitter_id = 'tweets_by_twitter_id'
+    tweets_by_text_and_id = 'tweets_by_text_and_id'
 
 
 entity_key = EntityKey()

@@ -1,4 +1,4 @@
-from common.constants import entity_key
+from common.constants import cache_id, entity_key
 from common.service import cached_query
 from datetime import datetime, timedelta
 from entity.abstract import ResourceEntity
@@ -95,8 +95,12 @@ class TwitterTerms(ResourceEntity):
         return self.record_cache is not None and record['term'] in self.record_cache
 
     def fetch(self):
-        twitter_tweets_table = 'tweets'
-        tweet_results = cached_query(entity_key.twitter_tweets, twitter_tweets_table, ['id', 'tweet'])
+        tweets_table = 'tweets'
+        joined_table = f'{tweets_table},calendar_date'
+        start_date = str((datetime.today() - timedelta(days=7)).date())
+        fields = [f'{tweets_table}.id as id', 'tweet']
+        where_clause = f'{tweets_table}.calendar_date_id = calendar_date.id and calendar_date.date > {start_date}'
+        tweet_results = cached_query(cache_id.tweets_by_text_and_id, joined_table, fields=fields, where=where_clause)
 
         self.records = []
         self.updates = []
@@ -164,7 +168,7 @@ class TwitterTermsFrequency(ResourceEntity):
         joined_table = f'{tweets_table},calendar_date'
         start_date = str((datetime.today() - timedelta(days=7)).date())
         where_clause = f'{tweets_table}.calendar_date_id = calendar_date.id and calendar_date.date > {start_date}'
-        tweet_results = cached_query(entity_key.twitter_tweets, joined_table, ['id', 'tweet'], where_clause)
+        tweet_results = cached_query(cache_id.tweets_by_text_and_id, joined_table, ['id', 'tweet'], where_clause)
 
         self.records = []
         self.updates = []
