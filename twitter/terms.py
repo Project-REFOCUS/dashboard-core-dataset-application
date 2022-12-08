@@ -99,7 +99,7 @@ class TwitterTerms(ResourceEntity):
         joined_table = f'{tweets_table},calendar_date'
         start_date = str((datetime.today() - timedelta(days=7)).date())
         fields = [f'{tweets_table}.id as id', 'tweet']
-        where_clause = f'{tweets_table}.calendar_date_id = calendar_date.id and calendar_date.date > {start_date}'
+        where_clause = f'{tweets_table}.calendar_date_id = calendar_date.id and calendar_date.date > "{start_date}"'
         tweet_results = cached_query(cache_id.tweets_by_text_and_id, joined_table, fields=fields, where=where_clause)
 
         self.records = []
@@ -140,7 +140,7 @@ class TwitterTermsFrequency(ResourceEntity):
     def load_cache(self):
         joined_table = f'{self.table_name},tweets,calendar_date'
         start_date = str((datetime.today() - timedelta(days=7)).date())
-        where_clause = f'{self.table_name}.tweets_id = tweets.id and tweets.calendar_date_id = calendar_date.id and calendar_date.date > {start_date}'
+        where_clause = f'{self.table_name}.tweets_id = tweets.id and tweets.calendar_date_id = calendar_date.id and calendar_date.date > "{start_date}"'
         fields = self.cacheable_fields + ['tweets_id']
         records = self.mysql_client.select(joined_table, fields=fields, where=where_clause)
         for record in records:
@@ -167,7 +167,7 @@ class TwitterTermsFrequency(ResourceEntity):
         tweets_table = 'tweets'
         joined_table = f'{tweets_table},calendar_date'
         start_date = str((datetime.today() - timedelta(days=7)).date())
-        where_clause = f'{tweets_table}.calendar_date_id = calendar_date.id and calendar_date.date > {start_date}'
+        where_clause = f'{tweets_table}.calendar_date_id = calendar_date.id and calendar_date.date > "{start_date}"'
         tweet_results = cached_query(cache_id.tweets_by_text_and_id, joined_table, ['id', 'tweet'], where_clause)
 
         self.records = []
