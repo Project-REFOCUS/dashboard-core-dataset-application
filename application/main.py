@@ -19,26 +19,28 @@ def execute(entities):
         entity_dependencies = object_entity.dependencies()
 
         if len(entity_dependencies):
+            debug(f'Entity {key} has {len(entity_dependencies)} dependencies...')
             execute(entity_dependencies)
 
         instantiated_entity_map[key] = object_entity()
         instantiated_entity = instantiated_entity_map[key]
 
         for dependency_key in entity_dependencies:
-            # instantiated_entity.set_dependencies_cache(dependency_key, instantiated_entity_map[dependency_key])
             instantiated_entity.set_dependencies(dependency_key, instantiated_entity_map[dependency_key])
 
         if key not in fetched_data_set:
             debug(f'Started {key}...')
             instantiated_entity.load_cache()
             instantiated_entity.fetch()
+            debug(f'Saving {key}...')
             instantiated_entity.save()
             if instantiated_entity.has_updates():
-                debug(f'Updating {key}')
+                debug(f'Updating {key}...')
                 instantiated_entity.update()
 
             fetched_data_set.add(key)
         else:
+            debug(f'Entity {key} already fetched...reloading cache...')
             instantiated_entity.load_cache()
 
 
