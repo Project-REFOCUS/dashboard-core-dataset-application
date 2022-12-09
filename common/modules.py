@@ -16,6 +16,7 @@ from osha.complaints import OshaClosedComplaints
 from twitter.accounts import TwitterAccountType, TwitterAccount
 from twitter.tweets import Tweets
 from twitter.terms import TwitterTerms, TwitterTermsFrequency
+from cdc.wastewater import WasteWater
 
 entity_map = {
     entity_key.calendar_date: CalendarDate,
@@ -43,5 +44,6 @@ entity_map = {
     entity_key.twitter_account: TwitterAccount,
     entity_key.twitter_tweets: Tweets,
     entity_key.twitter_tweets_terms: TwitterTerms,
-    entity_key.twitter_tweets_terms_frequency: TwitterTermsFrequency
+    entity_key.twitter_tweets_terms_frequency: TwitterTermsFrequency,
+    entity_key.cdc_waste_water: WasteWater
 }

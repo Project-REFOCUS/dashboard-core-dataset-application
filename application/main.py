@@ -64,7 +64,8 @@ if __name__ == '__main__':
         entity_key.twitter_account,
         entity_key.twitter_tweets,
         entity_key.twitter_tweets_terms,
-        entity_key.twitter_tweets_terms_frequency
+        entity_key.twitter_tweets_terms_frequency,
+        entity_key.cdc_waste_water
     ]
     debug('Application starting...')
     execute(root_entities)

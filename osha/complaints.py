@@ -33,8 +33,8 @@ class OshaClosedComplaints(ResourceEntity):
         ]
 
     def get_calendar_date_id(self, record, field):
-        calendar_date_cache = self.dependencies_cache[entity_key.calendar_date]
-        return calendar_date_cache[str(record[field].date())]['id']
+        calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
+        return calendar_date_entity.get_cahced_value(str(record[field].date()))['id']
 
     # TODO: Need to create a more robust city name resolution algorithm to reliably capture more data sets
     def get_city_id(self, record, field):

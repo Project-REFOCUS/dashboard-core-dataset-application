@@ -25,6 +25,7 @@ class EntityKey:
     twitter_tweets = 'twitter.tweets'
     twitter_tweets_terms = 'twitter.tweets_terms'
     twitter_tweets_terms_frequency = 'twitter.tweets_terms_frequency'
+    cdc_waste_water = 'cdc.waste_water'
 
 
 class CacheId:
