@@ -40,9 +40,38 @@ class WasteWater(ResourceEntity):
             {'field': 'detect_prop_15d', 'column': 'detected_proportion_over_15_days', 'data': get_int_value_or_none}
         ]
 
+    def load_cache(self):
+        records = self.mysql_client.select(self.table_name)
+        for record in records:
+            if self.record_cache is None:
+                self.record_cache = {}
+
+            county_id = str(record['county_id'])
+            calendar_date_id = str(record['calendar_date_id'])
+
+            if county_id not in self.record_cache:
+                self.record_cache[county_id] = {}
+
+            records_by_county = self.record_cache[county_id]
+
+            if calendar_date_id not in records_by_county:
+                records_by_county[calendar_date_id] = record
+
+    def get_cached_value(self, key):
+        county_id, calendar_date_id = key.split('.')
+        records_by_county = self.record_cache[county_id] if county_id in self.record_cache else None
+        return records_by_county[calendar_date_id] if records_by_county is not None and calendar_date_id in records_by_county else None
+
+
     def skip_record(self, record):
         county_entity = self.dependencies_map[entity_key.census_us_county]
-        return 'county_fips' not in record or county_entity.get_cached_value(record['county_fips']) is None
+        calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
+        calendar_date = calendar_date_entity.get_cached_value(record['date_end'])
+        calendar_date_id = calendar_date['id']
+        county = county_entity.get_cached_value(record['county_fips'])
+        county_id = county['id'] if county is not None else None
+        return county is None or self.get_cached_value(f'{county_id}.{calendar_date_id}') is not None
+
 
     def fetch(self):
         offset = 0
