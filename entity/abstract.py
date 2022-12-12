@@ -126,6 +126,10 @@ class ResourceEntity:
 
             self.mysql_client.commit()
 
+    def after_save(self):
+        if len(self.record_cache) < len(self.records):
+            self.load_cache()
+
     def has_updates(self):
         return self.updates is not None and len(self.updates) > 0
 
@@ -147,6 +151,9 @@ class ResourceEntity:
                 progress(records_processed, record_count)
 
             # self.mysql_client.commit()
+
+    def after_update(self):
+        self.load_cache()
 
     def drop_cache(self):
         pass
