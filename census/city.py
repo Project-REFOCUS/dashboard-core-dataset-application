@@ -51,7 +51,7 @@ class USCity(ResourceEntity):
         if self.get_cached_value(record['name']) is None:
             county = county_entity.get_cached_value(county_fips_code)
             if county is None:
-                self.search_county_for_city(record)
+                county = self.search_county_for_city(record)
         else:
             county = None
 
