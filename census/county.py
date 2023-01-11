@@ -3,6 +3,7 @@ from entity.abstract import ResourceEntity
 
 import requests
 import json
+import time
 
 
 def get_fips_code(record, field):
@@ -93,7 +94,15 @@ class CountyPopulation(ResourceEntity):
 
             county_population_url = f'{base_url}?t={topic}&g={state_code}{global_state_code}&id={data_id}'
             response = requests.request('GET', county_population_url)
-            if response.content is None or len(response.content) == 0:
+            retries = 0
+
+            while response.content == 500 and retries < 3:
+                time.sleep(2)
+
+                response = requests.request('GET', county_population_url)
+                retries += 1
+
+            if response.status_code != 200 or response.content is None or len(response.content) == 0:
                 continue
 
             response_content = json.loads(response.content)

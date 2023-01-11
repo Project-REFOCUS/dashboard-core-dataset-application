@@ -1,6 +1,6 @@
 from datecalendar.entity import CalendarDate, CalendarMonth, CalendarDay
 from datecalendar.holiday import CalendarHolidayDate, CalendarHoliday, CalendarHolidayType
-from census.city import USCity, CityPopulation
+from census.city import USCity, USCityType, USCountyCities, CityPopulation
 from census.county import USCounty, CountyPopulation
 from census.state import USState, StatePopulation
 from census.ethnicity import RaceEthnicity
@@ -26,6 +26,8 @@ entity_map = {
     entity_key.calendar_holiday_date: CalendarHolidayDate,
     entity_key.calendar_holiday_type: CalendarHolidayType,
     entity_key.census_us_city: USCity,
+    entity_key.census_us_city_type: USCityType,
+    entity_key.census_us_county_city: USCountyCities,
     entity_key.census_us_county: USCounty,
     entity_key.census_us_state: USState,
     entity_key.census_state_population: StatePopulation,
