@@ -138,11 +138,15 @@ class Tweets(ResourceEntity):
         ninety_days_after_start = self.search_start_time + timedelta(days=90)
         self.search_end_time = ninety_days_after_start if today > ninety_days_after_start else today
 
+        usernames = []
         for data in accounts_data:
             username = data['Twitter handle']
-
-            tweets = api.get_tweets_by_username(username, self.search_start_time, self.search_end_time)
-            self.records.extend(tweets)
+            usernames.append(f'from:{username}')
+            username_query = ' OR '.join(usernames)
+            if len(usernames) >= 10:
+                tweets = api.get_tweets_by_username(username_query, self.search_start_time, self.search_end_time)
+                self.records.extend(tweets)
+                usernames = []
 
     def after_save(self):
         super().after_save()
