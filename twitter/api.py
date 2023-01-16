@@ -68,7 +68,7 @@ class TwitterApi:
             query = f'{query}&next_token={next_token}'
 
         time.sleep(2)
-        url = constants.twitter_api_full_searchh if full_search else constants.twitter_api_full_search
+        url = constants.twitter_api_full_search if full_search else constants.twitter_api_recent_search
 
         response = self.send_request(f'{url}?{query}')
 
