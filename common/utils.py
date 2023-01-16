@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import math
 import sys
@@ -81,3 +81,7 @@ def progress(value, total):
 def debug(message):
     if os.getenv('DEBUG_PROGRESS') is not None:
         log(message)
+
+
+def start_of_day(daytime):
+    return daytime - timedelta(hours=daytime.hour, minutes=daytime.minute, seconds=daytime.second, microseconds=daytime.microsecond)

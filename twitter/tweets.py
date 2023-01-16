@@ -1,14 +1,29 @@
-from common.constants import entity_key, cache_id
+from common.constants import entity_key, cache_id, constants
 from common.service import cached_request, cached_query
-from common.utils import ensure_int
+from common.utils import ensure_int, start_of_day
 from datetime import datetime, timedelta
 from entity.abstract import ResourceEntity
 from .api import TwitterApi
 
 import csv
 import io
+import os
+import re
 
 URL = 'https://docs.google.com/spreadsheets/d/1v5uSOskUD1En0iY3WcR4zCP_nogYT-8IPjMr9mI_414/pub?single=true&output=csv'
+
+
+def get_search_start_time():
+    today = datetime.today()
+    start_time = today - timedelta(days=6)
+    start_time_input = os.getenv(constants.twitter_api_search_start_time)
+    if start_time_input is not None and re.compile(constants.date_regex).match(start_time_input):
+        try:
+            start_time = datetime.strptime(start_time_input, constants.datetime_format)
+        except ValueError:
+            pass
+
+    return start_time
 
 
 def get_twitter_id(record, field):
@@ -74,6 +89,8 @@ class Tweets(ResourceEntity):
             {'field': 'created_at', 'column': 'calendar_date_id', 'data': self.get_calendar_date_id}
         ]
         self.cacheable_fields = ['twitter_id']
+        self.search_start_time = get_search_start_time()
+        self.search_end_time = None
 
     def load_cache(self):
         joined_table = f'{self.table_name},calendar_date'
@@ -95,6 +112,15 @@ class Tweets(ResourceEntity):
         return self.record_cache is not None and record['id'] in self.record_cache
 
     def fetch(self):
+        self.records = []
+
+    def has_data(self):
+        if len(self.records) == 0 and self.search_start_time < start_of_day(datetime.today()):
+            self.get_tweets()
+
+        return len(self.records) != 0
+
+    def get_tweets(self):
         request = cached_request(cache_id.twitter_accounts, 'GET', URL)
         accounts_data = csv.DictReader(io.StringIO(request.content.decode('utf-8')))
 
@@ -109,12 +135,18 @@ class Tweets(ResourceEntity):
             return
 
         today = datetime.today()
-        datetime_format = '%Y-%m-%dT00:00:00.000Z'
-        start_time = datetime.strftime(today - timedelta(days=5), datetime_format)
-        end_time = datetime.strftime(today, datetime_format)
+        ninety_days_after_start = self.search_start_time + timedelta(days=90)
+        self.search_end_time = ninety_days_after_start if today > ninety_days_after_start else today
 
         for data in accounts_data:
             username = data['Twitter handle']
 
-            tweets = api.get_tweets_by_username(username, start_time, end_time)
+            tweets = api.get_tweets_by_username(username, self.search_start_time, self.search_end_time)
             self.records.extend(tweets)
+
+    def after_save(self):
+        super().after_save()
+
+        self.search_start_time = self.search_end_time
+        self.records = []
+

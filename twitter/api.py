@@ -1,3 +1,5 @@
+from common.constants import constants
+from datetime import datetime, timedelta
 from requests.auth import HTTPBasicAuth
 
 import requests
@@ -41,20 +43,34 @@ class TwitterApi:
         response = self.send_request(f'/2/users/by?usernames={usernames_param}')
         return json.loads(response.content.decode('utf-8'))['data'] if response.status_code == 200 else []
 
+    def get_tweet_counts_by_usernames(self, usernames, start_time, end_time):
+        start_time_param = f'start_time={datetime.strftime(start_time, constants.datetime_format)}'
+        end_time_param = f'end_time={datetime.strftime(end_time, constants.datetime_format)}'
+        query = f'query={usernames}&start_time={start_time_param}&end_time={end_time_param}'
+        url = f'{constants.twitter_api_tweet_count}'
+
+        response = self.send_request(f'{url}?{query}')
+        twitter_response = json.loads(response.content.decode('utf-8'))
+
+        return twitter_response['meta']['total_tweet_count']
+
     def get_tweets_by_username(self, username, start_time, end_time, tweets=None, next_token=None):
+        today = datetime.today()
+        full_search = today > start_time + timedelta(days=7)
         query_param = f'query=from:{username}'
-        max_results_param = 'max_results=100'
+        max_results_param = 'max_results=500' if full_search else 'max_results=100'
         tweet_fields_param = 'tweet.fields=author_id,created_at,public_metrics'
-        start_time_param = f'start_time={start_time}'
-        end_time_param = f'end_time={end_time}'
+        start_time_param = f'start_time={datetime.strftime(start_time, constants.datetime_format)}'
+        end_time_param = f'end_time={datetime.strftime(end_time, constants.datetime_format)}'
         query = f'{query_param}&{max_results_param}&{start_time_param}&{end_time_param}&{tweet_fields_param}'
 
         if next_token is not None:
             query = f'{query}&next_token={next_token}'
 
         time.sleep(2)
-        url = f'/2/tweets/search/recent?{query}'
-        response = self.send_request(url)
+        url = constants.twitter_api_full_searchh if full_search else constants.twitter_api_full_search
+
+        response = self.send_request(f'{url}?{query}')
 
         if tweets is None:
             tweets = []

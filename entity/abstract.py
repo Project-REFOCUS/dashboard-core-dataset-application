@@ -70,6 +70,9 @@ class ResourceEntity:
         self.records = []
         self.fields = []
 
+    def has_data(self):
+        return len(self.records) != 0
+
     def save(self):
         if self.mysql_client.is_connected():
             self.mysql_client.start_transaction()
@@ -129,6 +132,8 @@ class ResourceEntity:
     def after_save(self):
         if len(self.record_cache) < len(self.records):
             self.load_cache()
+
+        self.records = []
 
     def has_updates(self):
         return self.updates is not None and len(self.updates) > 0

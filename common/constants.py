@@ -38,5 +38,15 @@ class CacheId:
     tweets_by_text_and_id = 'tweets_by_text_and_id'
 
 
+class Constants:
+    twitter_api_search_start_time = 'TWITTER_API_SEARCH_START_TIME'
+    twitter_api_recent_search = '/2/tweets/search/recent'
+    twitter_api_full_search = '/2/tweets/search/all'
+    twitter_api_tweet_count = '/2/tweets/counts/all'
+    datetime_format = '%Y-%m-%dT%H:%M:%S.000Z'
+    date_regex = r'^20[1-3][0-9]-[01][1-9]-[0-3][0-9]T\d{2}:\d{2}:\d{2}.\d{3}Z$'
+
+
 entity_key = EntityKey()
 cache_id = CacheId()
+constants = Constants()
