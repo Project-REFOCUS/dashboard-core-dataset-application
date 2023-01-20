@@ -40,7 +40,7 @@ class StateVaccinations(ResourceEntity):
 
     def get_calendar_date_id(self, record, field):
         calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
-        return calendar_date_entity.get_cached_value(record[field])['id']
+        return str(calendar_date_entity.get_cached_value(record[field])['id'])
 
     def get_state_id(self, record, field):
         state_entity = self.dependencies_map[entity_key.census_us_state]
