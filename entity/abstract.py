@@ -46,11 +46,12 @@ class ResourceEntity:
         self.dependencies_map[key] = dependency
 
     def load_cache(self):
+        if self.record_cache is None:
+            self.record_cache = {}
+
         if self.cacheable_fields is not None:
             records = self.mysql_client.select(self.table_name)
             for record in records:
-                if self.record_cache is None:
-                    self.record_cache = {}
 
                 for field in self.cacheable_fields:
                     self.record_cache[str(record[field])] = record
