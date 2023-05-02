@@ -4,6 +4,8 @@ from census.city import USCity, USCityType, USCountyCities, CityPopulation
 from census.county import USCounty, CountyPopulation
 from census.state import USState, StatePopulation
 from census.ethnicity import RaceEthnicity
+from census.tract import CensusTract
+from census.blockgroup import BlockGroup
 from common.constants import entity_key
 from cdc.cases import StateCases
 from cdc.deaths import StateDeaths
@@ -34,6 +36,8 @@ entity_map = {
     entity_key.census_county_population: CountyPopulation,
     entity_key.census_city_population: CityPopulation,
     entity_key.census_race_ethnicity: RaceEthnicity,
+    entity_key.census_tract: CensusTract,
+    entity_key.census_block_group: BlockGroup,
     entity_key.cdc_state_cases: StateCases,
     entity_key.cdc_state_deaths: StateDeaths,
     entity_key.cdc_state_tests: StateTests,

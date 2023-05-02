@@ -62,7 +62,6 @@ class WasteWater(ResourceEntity):
         records_by_county = self.record_cache[county_id] if county_id in self.record_cache else None
         return records_by_county[calendar_date_id] if records_by_county is not None and calendar_date_id in records_by_county else None
 
-
     def skip_record(self, record):
         county_entity = self.dependencies_map[entity_key.census_us_county]
         calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
@@ -71,7 +70,6 @@ class WasteWater(ResourceEntity):
         county = county_entity.get_cached_value(record['county_fips'])
         county_id = county['id'] if county is not None else None
         return county is None or self.get_cached_value(f'{county_id}.{calendar_date_id}') is not None
-
 
     def fetch(self):
         offset = 0

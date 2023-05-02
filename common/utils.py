@@ -72,10 +72,11 @@ def percentage(processed, amount):
     return f'{math.floor(quotient * 100)}%'
 
 
-def progress(value, total):
+def progress(value, total, label=None):
+    progress_label = label if label is not None else 'Records processed'
     if os.getenv('DEBUG_PROGRESS') is not None:
         newline = value == total
-        log(f'\rProgress: {percentage(value, total)} - Records processed: {value} of {total}', newline, False)
+        log(f'\rProgress: {percentage(value, total)} - {progress_label}: {value} of {total}', newline, False)
 
 
 def debug(message):

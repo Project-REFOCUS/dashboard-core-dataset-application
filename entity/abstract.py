@@ -71,7 +71,7 @@ class ResourceEntity:
         self.fields = []
 
     def has_data(self):
-        return len(self.records) != 0
+        return self.records is not None and len(self.records) != 0
 
     def save(self):
         if self.mysql_client.is_connected():
