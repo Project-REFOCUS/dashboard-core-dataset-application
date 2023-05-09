@@ -211,16 +211,16 @@ class MysqlClient:
         else:
             query = query.format(utils.stringify(fields))
 
-        if self.cursor is not None:
-            print('Cannot select while a transaction is currently in progress')
-            return None
+        # TODO: Testing localized cursor for select queries
+        # if self.cursor is not None:
+        #     print('Cannot select while a transaction is currently in progress')
+        #     return None
 
-        self.cursor = self.connection.cursor()
-        self.cursor.execute(query)
+        cursor = self.connection.cursor()
+        cursor.execute(query)
 
-        column_names = self.cursor.column_names
-        results = self.cursor.fetchall()
-        self.cursor = None
+        column_names = cursor.column_names
+        results = cursor.fetchall()
 
         json_results = []
         for result in results:

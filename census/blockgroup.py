@@ -35,7 +35,7 @@ class BlockGroup(ResourceEntity):
             {'field': 'code', 'column': 'census_tract_id', 'data': self.get_census_tract_id}
         ]
 
-        self.cacheable_fields = ['name']
+        self.cacheable_fields = ['name', 'fips']
 
     def skip_record(self, record):
         return 'code' in record and '$' in record['code'] \

@@ -20,6 +20,8 @@ class EntityKey:
     cdc_state_deaths = 'cdc.state_deaths'
     cdc_state_tests = 'cdc.state_tests'
     cdc_state_vaccinations = 'cdc.state_vaccinations'
+    epa_ejscreen_field = 'epa.ejscreen_field'
+    epa_ejscreen_value = 'epa.ejscreen_value'
     police_fatal_shootings = 'police.fatal_shootings'
     apha_racism_declarations = 'apha.racism_declarations'
     ucla_covid_behind_bars = 'ucla.covid_behind_bars'
