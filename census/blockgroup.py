@@ -5,7 +5,7 @@ from entity.abstract import ResourceEntity
 import requests
 import json
 
-FETCHED_RECORDS_THRESHOLD = 1000
+FETCHED_RECORDS_THRESHOLD = 10000
 
 
 def get_block_group_fips(record, field):

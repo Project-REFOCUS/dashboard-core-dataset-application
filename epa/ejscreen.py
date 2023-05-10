@@ -175,7 +175,7 @@ class EpaDataValue(ResourceEntity):
 
                             # Initialize record with defaults
                             for default_field in ignored_fields:
-                                record[default_field] = data[default_field]
+                                record[default_field] = data[default_field] if default_field in data else None
 
                             record[field] = data[field]
                             self.records.append(record)
