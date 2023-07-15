@@ -24,4 +24,6 @@ jobs:
       BUILD_NUMBER: ${{ github.run_number }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      GIT_COMMITTER_EMAIL: ${{ vars.GIT_COMMITTER_EMAIL }}
+      GIT_COMMITTER_NAME: ${{ vars.GIT_COMMITTER_NAME }}
       TAG: 0.1.${{ github.run_number }}
