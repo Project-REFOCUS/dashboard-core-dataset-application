@@ -1,0 +1,29 @@
+#This workflow deploys to Docker Hub
+name: docker-hub-deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Deploy to DockerHub
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout repository
+      - name: Authorize DockerHub
+        run: echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
+      - name: Docker build tag
+        run: docker build -t gscbinc/dashboard-core-dataset-application:$TAG .
+      - name: Create tag
+        run: git tag -a $TAG -m "Creating tag $TAG"
+      - name: Push tag
+        run: git push --tags
+    env:
+      BUILD_NUMBER: ${{ github.run_number }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      GIT_COMMITTER_EMAIL: ${{ vars.GIT_COMMITTER_EMAIL }}
+      GIT_COMMITTER_NAME: ${{ vars.GIT_COMMITTER_NAME }}
+      TAG: 0.1.${{ github.run_number }}
