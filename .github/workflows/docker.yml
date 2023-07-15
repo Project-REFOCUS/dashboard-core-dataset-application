@@ -13,11 +13,11 @@ jobs:
       - uses: actions/checkout@v3
         name: Checkout repository
       - name: Logging the github run id
-        run: echo Github Run ID - ${{ github.run_attempt }}
+        run: echo Github Run Number - ${{ github.run_number }}
       - name: Authorize DockerHub
         run: echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
       - name: Docker build tag
-        run: docker build -t gscbinc/dashboard-core-dataset-application:0.0.${{ github.run_attempt }} .
+        run: docker build -t gscbinc/dashboard-core-dataset-application:0.0.${{ github.run_number }} .
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
