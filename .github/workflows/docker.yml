@@ -1,0 +1,18 @@
+#This workflow deploys to Docker Hub
+name: docker-hub-deploy
+
+on:
+  push:
+    branches: [ "test-deploy" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Deploy to DockerHub
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout repository
+      - name: Authorize DockerHub
+        run: echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
+      - name: Docker build tag
+        run: docker build -t gscbinc/dashboard-core-dataset-application:${{ github.GITHUB_RUN_ID }} .
