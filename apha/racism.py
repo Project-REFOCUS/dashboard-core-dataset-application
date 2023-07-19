@@ -1,6 +1,6 @@
 from census.constants import state_abbrev_map
 from common.constants import entity_key
-from common.utils import ensure_float
+from common.utils import ensure_float, debug
 from datetime import datetime
 from entity.abstract import ResourceEntity
 
@@ -85,9 +85,14 @@ class RacismDeclarations(ResourceEntity):
 
         city_name = address[field] if field in address else address['town']
         state_name = address['state'] if 'state' in address else state_abbrev_map[record['State']]
-        city_cache_key = f'{city_name} city, {state_name}'
+        sanitized_city_name = city_name.replace('City of', '').strip()
+        city_cache_key = f'{sanitized_city_name} city, {state_name}'
         city = city_entity.get_cached_value(city_cache_key)
-        return city['id'] if city is not None else city
+        city_id = city['id'] if city is not None else city
+        if city_id is None:
+            debug(f'{sanitized_city_name} was not found in city entity cache')
+
+        return city_id
 
     def __init__(self):
         super().__init__()
