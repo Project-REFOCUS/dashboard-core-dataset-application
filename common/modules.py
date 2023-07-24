@@ -10,6 +10,7 @@ from common.constants import entity_key
 from cdc.cases import StateCases
 from cdc.deaths import StateDeaths
 from cdc.tests import StateTests
+from cdc.deaths import NycCountyDeaths
 from cdc.vaccinations import StateVaccinations
 from epa.ejscreen import EpaDataField, EpaDataValue
 from police.entity import FatalShootings
@@ -42,6 +43,7 @@ entity_map = {
     entity_key.cdc_state_cases: StateCases,
     entity_key.cdc_state_deaths: StateDeaths,
     entity_key.cdc_state_tests: StateTests,
+    entity_key.cdc_county_deaths: NycCountyDeaths,
     entity_key.cdc_state_vaccinations: StateVaccinations,
     entity_key.epa_ejscreen_field: EpaDataField,
     entity_key.epa_ejscreen_value: EpaDataValue,

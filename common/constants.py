@@ -19,6 +19,7 @@ class EntityKey:
     cdc_state_cases = 'cdc.state_cases'
     cdc_state_deaths = 'cdc.state_deaths'
     cdc_state_tests = 'cdc.state_tests'
+    cdc_county_deaths = 'cdc.county_deaths'
     cdc_state_vaccinations = 'cdc.state_vaccinations'
     epa_ejscreen_field = 'epa.ejscreen_field'
     epa_ejscreen_value = 'epa.ejscreen_value'
