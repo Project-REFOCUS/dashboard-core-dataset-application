@@ -30,6 +30,7 @@ state_abbrev_map = {
 
 ignored_states = {
     'All States within United States, Puerto Rico, and the Island Areas',
+    'All Places within United States',
     'All Places in United States',
     'American Samoa',
     'Commonwealth of the Northern Mariana Islands',
