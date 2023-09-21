@@ -33,6 +33,7 @@ def execute(entities):
         if key not in fetched_data_set:
             debug(f'Loading {key} cache...')
             instantiated_entity.load_cache()
+            debug(f'Fetching data for {key}...')
             instantiated_entity.fetch()
             while instantiated_entity.has_data():
                 debug(f'Entity {key} has data and saving...')
@@ -53,8 +54,8 @@ def execute(entities):
 if __name__ == '__main__':
     root_entities = [
         entity_key.census_us_metro_area,
-        entity_key.census_us_city,
-        # entity_key.census_us_zipcode
+        # entity_key.census_us_city,
+        entity_key.census_us_city_zipcode,
         entity_key.census_block_group,
         entity_key.calendar_date,
         entity_key.calendar_holiday_date,
@@ -62,19 +63,19 @@ if __name__ == '__main__':
         entity_key.census_county_population,
         entity_key.census_city_population,
         # entity_key.cdc_state_cases,
-        # entity_key.cdc_state_deaths,
+        entity_key.cdc_state_deaths,
         # entity_key.cdc_state_tests,
-        # entity_key.cdc_state_vaccinations,
-        # entity_key.cdc_county_deaths,
+        entity_key.cdc_state_vaccinations,
+        entity_key.cdc_county_deaths,
         # entity_key.police_fatal_shootings,
-        # entity_key.apha_racism_declarations,
-        # entity_key.ucla_covid_behind_bars,
-        # entity_key.osha_closed_complaints,
-        entity_key.twitter_account,
-        entity_key.twitter_tweets,
-        entity_key.twitter_tweets_terms,
-        entity_key.twitter_tweets_terms_frequency,
-        # entity_key.cdc_waste_water,
+        entity_key.apha_racism_declarations,
+        entity_key.ucla_covid_behind_bars,
+        entity_key.osha_closed_complaints,
+        # entity_key.twitter_account,
+        # entity_key.twitter_tweets,
+        # entity_key.twitter_tweets_terms,
+        # entity_key.twitter_tweets_terms_frequency,
+        entity_key.cdc_waste_water,
         # entity_key.epa_ejscreen_value,
     ]
     debug('Application starting...')

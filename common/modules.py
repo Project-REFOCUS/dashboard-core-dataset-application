@@ -4,7 +4,7 @@ from census.city import USCity, USCityType, USCountyCities, CityPopulation
 from census.county import USCounty, CountyPopulation
 from census.state import USState, StatePopulation
 from census.metro import USMetroArea
-from census.zipcode import USZipCode
+from census.zipcode import USZipCode, USCityZipCodes
 from census.ethnicity import RaceEthnicity
 from census.tract import CensusTract
 from census.blockgroup import BlockGroup
@@ -37,7 +37,8 @@ entity_map = {
     entity_key.census_us_county: USCounty,
     entity_key.census_us_state: USState,
     entity_key.census_us_metro_area: USMetroArea,
-    # entity_key.census_us_zipcode: USZipCode,
+    entity_key.census_us_zipcode: USZipCode,
+    entity_key.census_us_city_zipcode: USCityZipCodes,
     entity_key.census_state_population: StatePopulation,
     entity_key.census_county_population: CountyPopulation,
     entity_key.census_city_population: CityPopulation,

@@ -12,6 +12,7 @@ class EntityKey:
     census_us_city_type = 'census.us_city_type'
     census_us_county_city = 'census.us_county_city'
     census_us_zipcode = 'census_us_zipcode'
+    census_us_city_zipcode = 'census_us_city_zipcode'
     census_state_population = 'census.state_population'
     census_county_population = 'census.county_population'
     census_city_population = 'census.city_population'
