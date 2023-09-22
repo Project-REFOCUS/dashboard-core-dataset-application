@@ -80,9 +80,8 @@ class USCityZipCodes(ResourceEntity):
     def skip_record(self, record):
         zipcode_id = self.get_zipcode_id(record, 'name')
         city_id = record['city_id']
-        return not city_id or not zipcode_id or (
-            city_id in self.record_cache and zipcode_id in self.record_cache[city_id]
-        )
+        cached_record = self.get_cached_value(city_id) if city_id else None
+        return not city_id or not zipcode_id or cached_record and cached_record['zipcode_id'] == zipcode_id
 
     def fetch(self):
         url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900&id=18&showComponents=false'
