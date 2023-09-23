@@ -76,47 +76,84 @@ class USCityZipCodes(ResourceEntity):
             {'field': 'city_id'}
         ]
         self.cacheable_fields = ['city_id']
+        self.states_consumed = set()
+        self.list_of_states = []
 
     def skip_record(self, record):
         zipcode_id = self.get_zipcode_id(record, 'name')
         city_id = record['city_id']
-        cached_record = self.get_cached_value(city_id) if city_id else None
-        return not city_id or not zipcode_id or cached_record and cached_record['zipcode_id'] == zipcode_id
+        cached_record = self.get_cached_value(zipcode_id) if zipcode_id else None
+        return not city_id or not zipcode_id or cached_record and city_id in cached_record
+
+    def get_cached_value(self, key):
+        return self.record_cache[key] if key in self.record_cache else None
+
+    def load_cache(self):
+        if not self.record_cache:
+            self.record_cache = {}
+
+        records = self.mysql_client.select(self.table_name)
+        for record in records:
+            zipcode_id = record['zipcode_id']
+            city_id = record['city_id']
+
+            if zipcode_id not in self.record_cache:
+                self.record_cache[zipcode_id] = set()
+
+            self.record_cache[zipcode_id].add(city_id)
 
     def fetch(self):
-        url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900&id=18&showComponents=false'
-        response_content = json.loads(requests.request('GET', url).content)
-        list_of_states = response_content['response']['geos']['items']
+        if not self.list_of_states:
+            url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900&id=18&showComponents=false'
+            response_content = json.loads(requests.request('GET', url).content)
+            self.list_of_states = response_content['response']['geos']['items']
 
         zipcode_base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900' + \
                            '&id=9&showComponents=false&within=160XX00US'
         zipcode_city_set = set()
 
         self.records = []
-        for state in list_of_states:
-            if state['name'] in ignored_states or 'collection' in state:
-                continue
+        states_length = len(self.list_of_states)
+        states_index = 0
+        needs_consuming = False
+        while states_index < states_length and not needs_consuming:
+            state = self.list_of_states[states_index]
+            if state['name'] in ignored_states or 'collection' in state or state['name'] in self.states_consumed:
+                self.states_consumed.add(state['name'])
+                states_index += 1
+            else:
+                needs_consuming = True
 
-            state_name = state['name']
-            [*_, state_code] = state['code'].split('US')
-            fields = ['city.id id, city.fips fips']
-            table = 'state,county,city,county_cities'
-            where = f'state.id=county.state_id and state.name = \'{state_name}\'' \
-                    + ' and county.id=county_cities.county_id and city.id=county_cities.city_id'
+        state = self.list_of_states[states_index]
+        state_name = state['name']
+        self.states_consumed.add(state_name)
+        [*_, state_code] = state['code'].split('US')
+        fields = ['city.id id, city.fips fips']
+        table = 'state,county,city,county_cities'
+        where = f'state.id=county.state_id and state.name = \'{state_name}\'' \
+                + ' and county.id=county_cities.county_id and city.id=county_cities.city_id'
 
-            cities = self.mysql_client.select(table_name=table, fields=fields, where=where)
+        cities = self.mysql_client.select(table_name=table, fields=fields, where=where)
 
-            for city in cities:
-                city_fips = city['fips']
-                response_content = http.get(f'{zipcode_base_url}{state_code}{city_fips}')
-                zipcode_list = response_content['response']['geos']['items']
+        for city in cities:
+            city_fips = city['fips']
+            response_content = http.get(f'{zipcode_base_url}{state_code}{city_fips}')
+            zipcode_list = response_content['response']['geos']['items']
 
-                for zipcode in zipcode_list:
-                    if 'collection' in zipcode:
-                        continue
+            for zipcode in zipcode_list:
+                if 'collection' in zipcode:
+                    continue
 
-                    zipcode_name = zipcode['name'].replace('ZCTA5 ', '').strip()
-                    set_key = USCityZipCodes.create_cache_key(city['id'], zipcode_name)
-                    if set_key not in zipcode_city_set:
-                        self.records.append({'name': zipcode_name, 'city_id': city['id']})
-                        zipcode_city_set.add(set_key)
+                zipcode_name = zipcode['name'].replace('ZCTA5 ', '').strip()
+                set_key = USCityZipCodes.create_cache_key(city['id'], zipcode_name)
+                if set_key not in zipcode_city_set:
+                    self.records.append({'name': zipcode_name, 'city_id': city['id']})
+                    zipcode_city_set.add(set_key)
+
+    def has_data(self):
+        return len(self.list_of_states) > len(self.states_consumed)
+
+    def after_save(self):
+        super().after_save()
+        # Fetch zipcodes from the next state
+        self.fetch()
