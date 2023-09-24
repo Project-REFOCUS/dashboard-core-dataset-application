@@ -1,5 +1,5 @@
 from census.constants import ignored_states
-from common import constants, http
+from common import constants, http, utils
 from entity.abstract import ResourceEntity
 
 import requests
@@ -122,6 +122,7 @@ class USCityZipCodes(ResourceEntity):
                 self.states_consumed.add(state['name'])
                 states_index += 1
             else:
+                utils.debug('Consuming zipcodes for {}'.format(state['name']))
                 needs_consuming = True
 
         state = self.list_of_states[states_index]

@@ -30,6 +30,7 @@ class EntityKey:
     apha_racism_declarations = 'apha.racism_declarations'
     ucla_covid_behind_bars = 'ucla.covid_behind_bars'
     osha_closed_complaints = 'osha.osha_closed_complaints'
+    snap_nyc_data = 'snap.nyc_data'
     twitter_account = 'twitter.accounts'
     twitter_account_type = 'twitter.account_type'
     twitter_tweets = 'twitter.tweets'
