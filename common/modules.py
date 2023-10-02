@@ -19,6 +19,7 @@ from police.entity import FatalShootings
 from apha.racism import RacismDeclarations
 from ucla.covid import CovidBehindBars
 from osha.complaints import OshaClosedComplaints
+from mvc.crashes import NYCMotorVehicleCollisions
 from snap.nyc import NYCCountySnap
 from twitter.accounts import TwitterAccountType, TwitterAccount
 from twitter.tweets import Tweets
@@ -63,5 +64,6 @@ entity_map = {
     entity_key.twitter_tweets_terms: TwitterTerms,
     entity_key.twitter_tweets_terms_frequency: TwitterTermsFrequency,
     entity_key.cdc_waste_water: WasteWater,
-    entity_key.snap_nyc_data: NYCCountySnap
+    entity_key.snap_nyc_data: NYCCountySnap,
+    entity_key.mvc_nyc_crashes: NYCMotorVehicleCollisions
 }
