@@ -1,4 +1,4 @@
-from common.contants import entity_key
+from common.constants import entity_key
 from entity.abstract import ResourceEntity
 from datetime import datetime, timedelta
 
