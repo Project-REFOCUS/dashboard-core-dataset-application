@@ -25,6 +25,8 @@ from twitter.accounts import TwitterAccountType, TwitterAccount
 from twitter.tweets import Tweets
 from twitter.terms import TwitterTerms, TwitterTermsFrequency
 from cdc.wastewater import WasteWater
+from childcare.entity import ChildCareCenter, ChildCareType
+
 
 entity_map = {
     entity_key.calendar_date: CalendarDate,
@@ -65,5 +67,7 @@ entity_map = {
     entity_key.twitter_tweets_terms_frequency: TwitterTermsFrequency,
     entity_key.cdc_waste_water: WasteWater,
     entity_key.snap_nyc_data: NYCCountySnap,
-    entity_key.mvc_nyc_crashes: NYCMotorVehicleCollisions
+    entity_key.mvc_nyc_crashes: NYCMotorVehicleCollisions,
+    entity_key.childcare_center: ChildCareCenter,
+    entity_key.childcare_center_type: ChildCareType
 }
