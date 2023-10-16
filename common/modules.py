@@ -25,7 +25,8 @@ from twitter.accounts import TwitterAccountType, TwitterAccount
 from twitter.tweets import Tweets
 from twitter.terms import TwitterTerms, TwitterTermsFrequency
 from cdc.wastewater import WasteWater
-from childcare.entity import ChildCareCenter, ChildCareType
+from childcare.entity import ChildCareCenter
+from childcare.caretype import ChildCareType
 
 
 entity_map = {
