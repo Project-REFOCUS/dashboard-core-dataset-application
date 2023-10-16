@@ -35,7 +35,7 @@ class WholesaleMarket(ResourceEntity):
         calendar_date = calendar_date_entity.get_cached_value(iso_date)
         return calendar_date['id'] if calendar_date is not None else calendar_date
     
-    def get_app_type_id(self, record, field):
+    def get_market_app_type_id(self, record, field):
         app_type_entity = self.dependencies_map[entity_key.wholesale_market_app_type]
         app_type = app_entity.get_cached_value(record[field])
         return app['id'] if app else None
@@ -48,7 +48,7 @@ class WholesaleMarket(ResourceEntity):
             {'field': 'market'},
             {'field': 'bic_number', 'column': 'public_id'},
             {'field': 'account_name'},
-            {'field': 'application_type', 'column': 'application_type_id', 'data': self.get_app_type_id},
+            {'field': 'application_type', 'column': 'market_application_type_id', 'data': self.get_market_app_type_id},
             {'field': 'disposition_date', 'column': 'effective_date_id', 'data': self.get_calender_date_id},
             {'field': 'postcode', 'column': 'zipcode_id', 'data': self.get_zipcode_id},
             {'field': 'effective_date', 'column': 'effective_date_id','data': self.get_calender_date_id},
