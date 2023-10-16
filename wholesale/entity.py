@@ -48,11 +48,11 @@ class WholesaleMarket(ResourceEntity):
             {'field': 'market'},
             {'field': 'bic_number', 'column': 'public_id'},
             {'field': 'account_name'},
-            {'field': 'application_type', 'data': self.get_app_type_id},
-            {'field': 'disposition_date', 'data': self.get_calender_date_id},
+            {'field': 'application_type', 'column': 'application_type_id', 'data': self.get_app_type_id},
+            {'field': 'disposition_date', 'column': 'effective_date_id', 'data': self.get_calender_date_id},
             {'field': 'postcode', 'column': 'zipcode_id', 'data': self.get_zipcode_id},
-            {'field': 'effective_date', 'column': 'effective_date','data': self.get_calender_date_id},
-            {'field': 'expiration_date', 'column': 'expiration_date','data': self.get_calender_date_id},
+            {'field': 'effective_date', 'column': 'effective_date_id','data': self.get_calender_date_id},
+            {'field': 'expiration_date', 'column': 'expiration_date_id','data': self.get_calender_date_id},
         ]
         self.cacheable_fields = ['public_id']
     
