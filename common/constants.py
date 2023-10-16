@@ -38,6 +38,8 @@ class EntityKey:
     twitter_tweets_terms = 'twitter.tweets_terms'
     twitter_tweets_terms_frequency = 'twitter.tweets_terms_frequency'
     cdc_waste_water = 'cdc.waste_water'
+    wholesale_market_app_type = 'wholesale.application_type'
+    wholesale_market = 'wholesale.market'
 
 
 class CacheId:
