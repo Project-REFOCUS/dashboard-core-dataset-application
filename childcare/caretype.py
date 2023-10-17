@@ -7,7 +7,8 @@ import requests
 
 API_URL = 'https://data.cityofnewyork.us/resource/dsg6-ifza.json' + \
     '?$select=`childcaretype`' + \
-    '&$where=inspectiondate >= \'{}\' and inspectiondate < \'{}\'&$limit=10000&$offset={}'
+    '&$where=inspectiondate >= \'{}\' and inspectiondate < \'{}\'&$limit=10000&$offset={}'+ \
+    '&$order=inspectiondate'
 
 class ChildCareType(ResourceEntity):
 
@@ -26,27 +27,25 @@ class ChildCareType(ResourceEntity):
     def fetch(self):
         self.records = []
         care_type_set = set()
+        
+        today_date = datetime.today()
+        begin_date = datetime(2020, 1, 1)
 
-        tomorrows_date = datetime(datetime.today().year, datetime.today().month, datetime.today().day + 1)
-        current_date = datetime(2020, 1, 1)
-
-        while current_date < tomorrows_date:
-            ending_date = current_date + timedelta(days=1)
-            continue_fetching = True
-            offset = 0
-            while continue_fetching:
-                request_url = API_URL.format(
-                    current_date.isoformat(),
-                    ending_date.isoformat(),
-                    offset
-                )
-                records = json.loads(requests.request('GET', request_url).content.decode('utf-8'))
-                continue_fetching = len(records) == 10000
-                for item in records:
+        continue_fetching = True
+        offset = 0
+        while continue_fetching:
+            request_url = API_URL.format(
+                begin_date.isoformat(),
+                today_date.isoformat(),
+                offset
+            )
+            records = json.loads(requests.request('GET', request_url).content.decode('utf-8'))
+            
+            for item in records:
+                if 'zipcode' in item:
                     if item['childcaretype'] not in care_type_set:
                         self.records.append(item)
                         care_type_set.add(item['childcaretype'])
-                
-                offset += (10000 if continue_fetching else 0)
-
-            current_date += timedelta(days=1)
+            
+            continue_fetching = len(records) == 10000
+            offset += (10000 if continue_fetching else 0)
