@@ -2,9 +2,12 @@ from common.constants import entity_key
 from entity.abstract import ResourceEntity
 from datetime import datetime, timedelta
 
+import json
+import requests
+
 API_URL = 'https://data.cityofnewyork.us/resource/dsg6-ifza.json' + \
     '?$select=`centername`,`legalname`,`zipcode`,`status`,`dc_id`,`childcaretype`' + \
-    '&$where=inspectiondate >= \'{}\' and inspectiondate < \'{}\'&$limit=1000&$offset={}'
+    '&$where=inspectiondate >= \'{}\' and inspectiondate < \'{}\'&$limit=10000&$offset={}'
 
 class ChildCareCenter(ResourceEntity):
 
@@ -43,12 +46,13 @@ class ChildCareCenter(ResourceEntity):
 
     def fetch(self):
         self.records = []
+        dc_id_set = set()
 
         tomorrows_date = datetime(datetime.today().year, datetime.today().month, datetime.today().day + 1)
         current_date = datetime(2020, 1, 1)
 
         while current_date < tomorrows_date:
-            ending_date = current_date + timedelta(days=1)
+            ending_date = current_date + timedelta(days=30)
             continue_fetching = True
             offset = 0
             while continue_fetching:
@@ -58,8 +62,13 @@ class ChildCareCenter(ResourceEntity):
                     offset
                 )
                 records = json.loads(requests.request('GET', request_url).content.decode('utf-8'))
-                self.records.extend(records)
-                continue_fetching = len(records) == 1000
-                offset += (1000 if continue_fetching else 0)
+                
+                for item in records:
+                    if item['dc_id'] not in dc_id_set:
+                        self.records.append(item)
+                        dc_id_set.add(item['dc_id'])
+                
+                continue_fetching = len(records) == 10000
+                offset += (10000 if continue_fetching else 0)
 
-            current_date += timedelta(days=1)
+            current_date += timedelta(days=30)
