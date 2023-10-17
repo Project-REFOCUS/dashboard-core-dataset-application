@@ -55,11 +55,11 @@ if __name__ == '__main__':
     root_entities = [
         # entity_key.census_us_metro_area,
         # entity_key.census_us_city,
-        entity_key.census_us_city_zipcode,
+        # entity_key.census_us_city_zipcode,
         # entity_key.snap_nyc_data,
         # entity_key.mvc_nyc_crashes,
         # entity_key.census_block_group,
-        entity_key.calendar_date,
+        # entity_key.calendar_date,
         # entity_key.calendar_holiday_date,
         # entity_key.census_state_population,
         # entity_key.census_county_population,

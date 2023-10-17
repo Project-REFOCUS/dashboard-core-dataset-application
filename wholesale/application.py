@@ -1,10 +1,14 @@
 from common.constants import entity_key
 from entity.abstract import ResourceEntity
-from datetime import datetime, timedelta
+from datetime import date, timedelta
+
+import re
+import json
+import requests
 
 API_URL = 'https://data.cityofnewyork.us/resource/87fx-28ei.json' + \
-    '?$select=`application_type`' + \
-    '&$where=disposition_date = \'{}\' &$limit=1000&$offset={}'
+    '?$select=`market`,`bic_number`,`account_name`,`application_type`,`disposition_date`,`postcode`,`effective_date`,`expiration_date`' + \
+    '&$where=disposition_date = \'{}\' &$limit=10000&$offset={}'
 
 class MarketApplicationType(ResourceEntity):
 
@@ -19,10 +23,11 @@ class MarketApplicationType(ResourceEntity):
         self.cacheable_fields = ['name']
     
     def skip_record(self, record):
-        return self.record_cache and record['name'] in self.record_cache
+        return (self.record_cache and record['application_type'] in self.record_cache) or 'application_type' not in record
 
     def fetch(self):
         self.records = []
+        application_type_set = set()
 
         tomorrows_date = date(date.today().year, date.today().month, date.today().day + 1)
         current_date = date(2020, 1, 1)
@@ -32,11 +37,17 @@ class MarketApplicationType(ResourceEntity):
             offset = 0
             while continue_fetching:
                 request_url = API_URL.format(
-                    current_date.date(),
+                    current_date,
                     offset
                 )
                 records = json.loads(requests.request('GET', request_url).content.decode('utf-8'))
-                self.records.extend(records)
+
+                for item in records:
+                    if 'application_type' in item:
+                        if item['application_type'] not in application_type_set:
+                            self.records.append(item)
+                            application_type_set.add(item['application_type'])
+
                 continue_fetching = len(records) == 1000
                 offset += (1000 if continue_fetching else 0)
 
