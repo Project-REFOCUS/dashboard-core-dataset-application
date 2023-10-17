@@ -52,7 +52,7 @@ class ChildCareCenter(ResourceEntity):
         current_date = datetime(2020, 1, 1)
 
         while current_date < tomorrows_date:
-            ending_date = current_date + timedelta(days=30)
+            ending_date = current_date + timedelta(days=1)
             continue_fetching = True
             offset = 0
             while continue_fetching:
@@ -71,4 +71,4 @@ class ChildCareCenter(ResourceEntity):
                 continue_fetching = len(records) == 10000
                 offset += (10000 if continue_fetching else 0)
 
-            current_date += timedelta(days=30)
+            current_date += timedelta(days=1)
