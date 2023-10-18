@@ -48,7 +48,6 @@ class CacheId:
     twitter_accounts = 'twitter_accounts'
     tweets_by_twitter_id = 'tweets_by_twitter_id'
     tweets_by_text_and_id = 'tweets_by_text_and_id'
-    #wholesale_market_record_data = 'wholesale_market_record_data'
 
 
 class Constants:

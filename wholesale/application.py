@@ -7,8 +7,9 @@ import json
 import requests
 
 API_URL = 'https://data.cityofnewyork.us/resource/87fx-28ei.json' + \
-    '?$select=`market`,`bic_number`,`account_name`,`application_type`,`disposition_date`,`postcode`,`effective_date`,`expiration_date`' + \
-    '&$where=disposition_date = \'{}\' &$limit=10000&$offset={}'
+    '?$select=`application_type`' + \
+    '&$where=disposition_date >= \'{}\' and disposition_date <= \'{}\' &$limit=10000&$offset={}' + '&$order=disposition_date'
+
 
 class MarketApplicationType(ResourceEntity):
 
@@ -29,26 +30,25 @@ class MarketApplicationType(ResourceEntity):
         self.records = []
         application_type_set = set()
 
-        tomorrows_date = date(date.today().year, date.today().month, date.today().day + 1)
-        current_date = date(2020, 1, 1)
+        today_date = date.today()
+        begin_date = date(2020, 1, 1)
 
-        while current_date < tomorrows_date:
-            continue_fetching = True
-            offset = 0
-            while continue_fetching:
-                request_url = API_URL.format(
-                    current_date,
-                    offset
-                )
-                records = json.loads(requests.request('GET', request_url).content.decode('utf-8'))
+        continue_fetching = True
+        offset = 0
+        while continue_fetching:
+            request_url = API_URL.format(
+                begin_date,
+                today_date,
+                offset
+            )
+            
+            records = json.loads(requests.request('GET', request_url).content.decode('utf-8'))
 
-                for item in records:
-                    if 'application_type' in item:
-                        if item['application_type'] not in application_type_set:
-                            self.records.append(item)
-                            application_type_set.add(item['application_type'])
+            for record in records:
+                if 'application_type' in record:
+                    if record['application_type'] not in application_type_set:
+                        self.records.append(record)
+                        application_type_set.add(record['application_type'])
 
-                continue_fetching = len(records) == 1000
-                offset += (1000 if continue_fetching else 0)
-
-            current_date += timedelta(days=1)
+            continue_fetching = len(records) == 1000
+            offset += (1000 if continue_fetching else 0)

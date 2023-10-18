@@ -1,7 +1,6 @@
 from common.constants import entity_key, cache_id
-from common.service import cached_request
 from entity.abstract import ResourceEntity
-from datetime import date, timedelta
+from datetime import date, datetime
 
 import re
 import json
@@ -9,9 +8,11 @@ import requests
 
 API_URL = 'https://data.cityofnewyork.us/resource/87fx-28ei.json' + \
     '?$select=`market`,`bic_number`,`account_name`,`application_type`,`disposition_date`,`postcode`,`effective_date`,`expiration_date`' + \
-    '&$where=disposition_date = \'{}\' &$limit=10000&$offset={}'
+    '&$where=disposition_date >= \'{}\' and disposition_date <= \'{}\' &$limit=10000&$offset={}' + '&$order=disposition_date'
 
 YYYY_MM_DD_PATTERN = re.compile('\\d{4}-\\d{1,2}-\\d{1,2}')
+ZIPCODE_PATTERN = re.compile('^\\d{5}$')
+ALPHA_ONLY_PATTERN = re.compile('[A-Za-z]+')
 
 class WholesaleMarket(ResourceEntity):
 
@@ -40,11 +41,11 @@ class WholesaleMarket(ResourceEntity):
     
     def get_market_app_type_id(self, record, field):
         app_type_entity = self.dependencies_map[entity_key.wholesale_market_app_type]
-        app_type = app_entity.get_cached_value(record[field])
-        return app['id'] if app else None
+        app_type = app_type_entity.get_cached_value(record[field])
+        return app_type['id'] if app_type else None
     
-    def get_public_id(self, record, field):
-        return record['field'] + record['disposition_date']
+    def create_public_id(self, record, field):
+        return record[field] + record['disposition_date']
 
     def __init__(self):
         super().__init__()
@@ -52,7 +53,7 @@ class WholesaleMarket(ResourceEntity):
         self.table_name = 'wholesale_market'
         self.fields = [
             {'field': 'market'},
-            {'field': 'bic_number', 'column': 'public_id', 'data': self.get_public_id},
+            {'field': 'bic_number', 'column': 'public_id', 'data': self.create_public_id},
             {'field': 'account_name'},
             {'field': 'application_type', 'column': 'market_application_type_id', 'data': self.get_market_app_type_id},
             {'field': 'disposition_date', 'column': 'disposition_date_id', 'data': self.get_calendar_date_id},
@@ -63,39 +64,50 @@ class WholesaleMarket(ResourceEntity):
         self.cacheable_fields = ['public_id']
     
     def skip_record(self, record):
+        if self.record_cache and self.create_public_id(record,'bic_number') in self.record_cache:
+            return True
 
-        if 'disposition_date' in record is None:
-            return true
-
-        if self.record_cache and self.get_public_id(record,'bic_number') in self.record_cache:
-            return true
+        if 'disposition_date' not in record  or 'effective_date' not in record or 'expiration_date' not in record:
+            return True
+        elif YYYY_MM_DD_PATTERN.match(record['expiration_date']) is not None:
+            return True
         
         if 'application_type' in record:
-            if record['application_type'] and YYYY_MM_DD_PATTERN.match(record['application_type']) is not None:
-                return true
+            if record['application_type'] and ALPHA_ONLY_PATTERN.match(record['application_type']) is None:
+                return True
         else:
-            return true
-            
-        return false
+            return True
+        
+        if record['postcode'] and ZIPCODE_PATTERN.match(record['postcode']) is None:
+            return True
+        
+        return False
+
 
     def fetch(self):
         self.records = []
+        public_id_set = set()
 
-        tomorrows_date = date(date.today().year, date.today().month, date.today().day + 1)
-        current_date = date(2020, 1, 1)
+        today_date = date.today()
+        begin_date = date(2020, 1, 1)
 
-        while current_date < tomorrows_date:
-            continue_fetching = True
-            offset = 0
-            while continue_fetching:
-                request_url = API_URL.format(
-                    current_date,
-                    offset
-                )
-                #request = cached_request(cache_id)
-                records = json.loads(requests.request('GET', request_url).content.decode('utf-8'))
-                self.records.extend(records)
-                continue_fetching = len(records) == 1000
-                offset += (1000 if continue_fetching else 0)
+        continue_fetching = True
+        offset = 0
+        while continue_fetching:
+            request_url = API_URL.format(
+                begin_date,
+                today_date,
+                offset
+            )
+            
+            records = json.loads(requests.request('GET', request_url).content.decode('utf-8'))
+            
+            for record in records:
+                if 'disposition_date' in record:
+                    public_id = self.create_public_id(record,'bic_number')
+                    if public_id not in public_id_set:
+                        self.records.append(record)
+                        public_id_set.add(public_id)
 
-            current_date += timedelta(days=1)
+            continue_fetching = len(records) == 1000
+            offset += (1000 if continue_fetching else 0)
