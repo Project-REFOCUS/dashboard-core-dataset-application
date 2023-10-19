@@ -64,24 +64,22 @@ class WholesaleMarket(ResourceEntity):
         self.cacheable_fields = ['public_id']
     
     def skip_record(self, record):
+        response = False
+        
         if self.record_cache and self.create_public_id(record,'bic_number') in self.record_cache:
-            return True
-
-        if 'disposition_date' not in record  or 'effective_date' not in record or 'expiration_date' not in record:
-            return True
-        elif YYYY_MM_DD_PATTERN.match(record['expiration_date']) is None:
-            return True
+            response = True
+        elif 'disposition_date' not in record or record['disposition_date'] is None or YYYY_MM_DD_PATTERN.match(record['disposition_date']) is None:
+            response = True
+        elif 'effective_date' not in record or record['effective_date'] is None or YYYY_MM_DD_PATTERN.match(record['effective_date']) is None:
+            response = True
+        elif 'expiration_date' not in record or record['expiration_date'] is None or YYYY_MM_DD_PATTERN.match(record['expiration_date']) is None:
+            response = True
+        elif 'application_type' not in record or record['application_type'] is None or ALPHA_ONLY_PATTERN.match(record['application_type']) is None:
+            response = True
+        elif 'postcode' not in record or record['postcode'] or ZIPCODE_PATTERN.match(record['postcode']) is None:
+            response = True
         
-        if 'application_type' in record:
-            if record['application_type'] and ALPHA_ONLY_PATTERN.match(record['application_type']) is None:
-                return True
-        else:
-            return True
-        
-        if record['postcode'] and ZIPCODE_PATTERN.match(record['postcode']) is None:
-            return True
-        
-        return False
+        return response
 
 
     def fetch(self):
