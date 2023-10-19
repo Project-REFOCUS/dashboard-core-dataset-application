@@ -12,7 +12,7 @@ API_URL = 'https://data.cityofnewyork.us/resource/87fx-28ei.json' + \
 
 YYYY_MM_DD_PATTERN = re.compile('\\d{4}-\\d{1,2}-\\d{1,2}')
 ZIPCODE_PATTERN = re.compile('^\\d{5}$')
-ALPHA_ONLY_PATTERN = re.compile('[A-Za-z]+')
+ALPHA_ONLY_PATTERN = re.compile('^[A-Za-z\\s]+$')
 
 class WholesaleMarket(ResourceEntity):
 
@@ -69,7 +69,7 @@ class WholesaleMarket(ResourceEntity):
 
         if 'disposition_date' not in record  or 'effective_date' not in record or 'expiration_date' not in record:
             return True
-        elif YYYY_MM_DD_PATTERN.match(record['expiration_date']) is not None:
+        elif YYYY_MM_DD_PATTERN.match(record['expiration_date']) is None:
             return True
         
         if 'application_type' in record:
