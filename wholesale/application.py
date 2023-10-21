@@ -9,6 +9,7 @@ import requests
 API_URL = 'https://data.cityofnewyork.us/resource/87fx-28ei.json' + \
     '?$select=`application_type`' + \
     '&$where=disposition_date >= \'{}\' and disposition_date <= \'{}\' &$limit=10000&$offset={}' + '&$order=disposition_date'
+
 ALPHA_ONLY_PATTERN = re.compile('^[A-Za-z\\s]+$')
 
 class MarketApplicationType(ResourceEntity):
@@ -24,7 +25,7 @@ class MarketApplicationType(ResourceEntity):
         self.cacheable_fields = ['name']
     
     def skip_record(self, record):
-        return (self.record_cache and record['application_type'] in self.record_cache) or 'application_type' not in record
+        return 'application_type' not in record or (self.record_cache and record['application_type'] in self.record_cache)
 
     def fetch(self):
         self.records = []

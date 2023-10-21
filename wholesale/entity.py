@@ -37,9 +37,6 @@ class WholesaleMarket(ResourceEntity):
             iso_date = str(datetime.strptime(record[field], '%Y-%m-%d').date())
 
         calendar_date = calendar_date_entity.get_cached_value(iso_date)
-        
-        if calendar_date is None:
-            print(">>>>>> None FOR RECORD:"+ str(record))
         return calendar_date['id'] if calendar_date is not None else calendar_date
     
     def get_market_app_type_id(self, record, field):
