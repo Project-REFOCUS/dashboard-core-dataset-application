@@ -7,7 +7,7 @@ import json
 import requests
 
 API_URL = 'https://data.cityofnewyork.us/resource/87fx-28ei.json' + \
-    '?$select=`market`,`bic_number`,`account_name`,`application_type`,`disposition_date`,`postcode`,`effective_date`,`expiration_date`' + \
+    '?$select=`market`,`bic_number`,`account_name`,`application_type`,`disposition_date`,`postcode`,`expiration_date`' + \
     '&$where=disposition_date >= \'{}\' and disposition_date <= \'{}\' &$limit=10000&$offset={}' + '&$order=disposition_date'
 
 YYYY_MM_DD_PATTERN = re.compile('\\d{4}-\\d{1,2}-\\d{1,2}')
@@ -37,6 +37,9 @@ class WholesaleMarket(ResourceEntity):
             iso_date = str(datetime.strptime(record[field], '%Y-%m-%d').date())
 
         calendar_date = calendar_date_entity.get_cached_value(iso_date)
+        
+        if calendar_date is None:
+            print(">>>>>> None FOR RECORD:"+ str(record))
         return calendar_date['id'] if calendar_date is not None else calendar_date
     
     def get_market_app_type_id(self, record, field):
@@ -58,7 +61,6 @@ class WholesaleMarket(ResourceEntity):
             {'field': 'application_type', 'column': 'market_application_type_id', 'data': self.get_market_app_type_id},
             {'field': 'disposition_date', 'column': 'disposition_date_id', 'data': self.get_calendar_date_id},
             {'field': 'postcode', 'column': 'zipcode_id', 'data': self.get_zipcode_id},
-            {'field': 'effective_date', 'column': 'effective_date_id','data': self.get_calendar_date_id},
             {'field': 'expiration_date', 'column': 'expiration_date_id','data': self.get_calendar_date_id},
         ]
         self.cacheable_fields = ['public_id']
@@ -66,17 +68,19 @@ class WholesaleMarket(ResourceEntity):
     def skip_record(self, record):
         response = False
         
-        if self.record_cache and self.create_public_id(record,'bic_number') in self.record_cache:
+        if 'disposition_date' not in record or record['disposition_date'] is None or YYYY_MM_DD_PATTERN.match(record['disposition_date']) is None:
             response = True
-        elif 'disposition_date' not in record or record['disposition_date'] is None or YYYY_MM_DD_PATTERN.match(record['disposition_date']) is None:
-            response = True
-        elif 'effective_date' not in record or record['effective_date'] is None or YYYY_MM_DD_PATTERN.match(record['effective_date']) is None:
+        elif self.record_cache and self.create_public_id(record,'bic_number') in self.record_cache:
             response = True
         elif 'expiration_date' not in record or record['expiration_date'] is None or YYYY_MM_DD_PATTERN.match(record['expiration_date']) is None:
             response = True
+        elif datetime.strptime(record['expiration_date'], '%Y-%m-%d').date() > date.today():
+            response = True
+        elif datetime.strptime(record['expiration_date'], '%Y-%m-%d').date() < datetime.strptime(record['disposition_date'], '%Y-%m-%d').date():
+            repsonse = True
         elif 'application_type' not in record or record['application_type'] is None or ALPHA_ONLY_PATTERN.match(record['application_type']) is None:
             response = True
-        elif 'postcode' not in record or record['postcode'] or ZIPCODE_PATTERN.match(record['postcode']) is None:
+        elif 'postcode' not in record or record['postcode'] is None or ZIPCODE_PATTERN.match(record['postcode']) is None:
             response = True
         
         return response
@@ -107,5 +111,5 @@ class WholesaleMarket(ResourceEntity):
                         self.records.append(record)
                         public_id_set.add(public_id)
 
-            continue_fetching = len(records) == 1000
-            offset += (1000 if continue_fetching else 0)
+            continue_fetching = len(records) == 10000
+            offset += (10000 if continue_fetching else 0)

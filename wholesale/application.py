@@ -9,7 +9,7 @@ import requests
 API_URL = 'https://data.cityofnewyork.us/resource/87fx-28ei.json' + \
     '?$select=`application_type`' + \
     '&$where=disposition_date >= \'{}\' and disposition_date <= \'{}\' &$limit=10000&$offset={}' + '&$order=disposition_date'
-
+ALPHA_ONLY_PATTERN = re.compile('^[A-Za-z\\s]+$')
 
 class MarketApplicationType(ResourceEntity):
 
@@ -45,10 +45,10 @@ class MarketApplicationType(ResourceEntity):
             records = json.loads(requests.request('GET', request_url).content.decode('utf-8'))
 
             for record in records:
-                if 'application_type' in record:
+                if 'application_type' in record and record['application_type'] and ALPHA_ONLY_PATTERN.match(record['application_type']):
                     if record['application_type'] not in application_type_set:
                         self.records.append(record)
                         application_type_set.add(record['application_type'])
 
-            continue_fetching = len(records) == 1000
-            offset += (1000 if continue_fetching else 0)
+            continue_fetching = len(records) == 10000
+            offset += (10000 if continue_fetching else 0)
