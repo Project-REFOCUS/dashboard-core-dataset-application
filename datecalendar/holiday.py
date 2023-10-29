@@ -81,10 +81,11 @@ class CalendarHolidayDate(ResourceEntity):
                 name_data = table_data_elements[name_index].text
                 date_data = table_data_elements[date_index].text
                 holiday_date = from_string_to_date(f'{date_data} {year}', format_string)
+                holiday_entity_record = holiday_entity.get_cached_value(name_data)
 
-                if holiday_date < date.today():
+                if holiday_entity_record and holiday_date < date.today():
                     self.records.append({
-                        'holiday_id': holiday_entity.get_cached_value(name_data)['id'],
+                        'holiday_id': holiday_entity_record['id'],
                         'calendar_date_id': calendar_date_entity.get_cached_value(holiday_date)['id']
                     })
 
