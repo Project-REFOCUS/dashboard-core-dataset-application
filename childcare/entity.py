@@ -28,15 +28,12 @@ class ChildCareCenter(ResourceEntity):
         childcare_type_entity = self.dependencies_map[entity_key.childcare_center_type]
         return childcare_type_entity.get_cached_value(record[field])['id']
     
-    def to_lowercase(self, record, field):
-        return record[field].lower()
-    
     def __init__(self):
         super().__init__()
 
         self.table_name = 'childcare_center'
         self.fields = [
-            {'field': 'centername', 'column': 'center_name', 'data': self.to_lowercase},
+            {'field': 'centername', 'column': 'center_name'},
             {'field': 'legalname', 'column': 'legal_name'},
             {'field': 'zipcode', 'column': 'zipcode_id', 'data': self.get_zipcode_id},
             {'field': 'status'},
@@ -45,7 +42,11 @@ class ChildCareCenter(ResourceEntity):
         self.cacheable_fields = ['center_name']
 
     def skip_record(self, record):
-        return self.record_cache and record['centername'].lower() in self.record_cache
+        if self.record_cache:
+            for key, value in self.record_cache.items():
+                if record['centername'].lower() == str(key).lower():
+                    return True
+        return False
 
     def fetch(self):
         self.records = []
