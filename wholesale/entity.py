@@ -32,9 +32,6 @@ class WholesaleMarket(ResourceEntity):
         app_type_entity = self.dependencies_map[entity_key.wholesale_market_app_type]
         app_type = app_type_entity.get_cached_value(record[field])
         return app_type['id'] if app_type else None
-    
-    def to_lowercase(self, record, field):
-        return record[field].lower() if record[field] else None
 
     def __init__(self):
         super().__init__()
@@ -42,18 +39,20 @@ class WholesaleMarket(ResourceEntity):
         self.table_name = 'wholesale_market'
         self.fields = [
             {'field': 'market'},
-            {'field': 'bic_number', 'column': 'public_id'},
-            {'field': 'account_name', 'data': self.to_lowercase},
+            {'field': 'account_name'},
             {'field': 'application_type', 'column': 'market_application_type_id', 'data': self.get_market_app_type_id},
             {'field': 'postcode', 'column': 'zipcode_id', 'data': self.get_zipcode_id}
         ]
-        self.cacheable_fields = ['public_id']
+        self.cacheable_fields = ['account_name']
     
     def skip_record(self, record):
         response = False
 
-        if self.record_cache and record['account_name'].lower() in self.record_cache:
-            response = True
+        if self.record_cache:
+            for key, value in self.record_cache.items():
+                if record['account_name'].lower() == str(key).lower():
+                    response = True
+                    break
         elif 'application_type' not in record or record['application_type'] is None or ALPHA_ONLY_PATTERN.match(record['application_type']) is None:
             response = True
         elif 'postcode' not in record or record['postcode'] is None or ZIPCODE_PATTERN.match(record['postcode']) is None:
