@@ -19,6 +19,7 @@ class EntityKey:
     census_race_ethnicity = 'census.race_ethnicity'
     census_tract = 'census.tract'
     census_block_group = 'census.block_group'
+    census_employment_status = 'census.employment_status'
     cdc_state_cases = 'cdc.state_cases'
     cdc_state_deaths = 'cdc.state_deaths'
     cdc_state_tests = 'cdc.state_tests'

@@ -8,6 +8,7 @@ from census.zipcode import USZipCode, USCityZipCodes
 from census.ethnicity import RaceEthnicity
 from census.tract import CensusTract
 from census.blockgroup import BlockGroup
+from census.employment import EmploymentStatus
 from common.constants import entity_key
 from cdc.cases import StateCases
 from cdc.deaths import StateDeaths
@@ -47,6 +48,7 @@ entity_map = {
     entity_key.census_race_ethnicity: RaceEthnicity,
     entity_key.census_tract: CensusTract,
     entity_key.census_block_group: BlockGroup,
+    entity_key.census_employment_status: EmploymentStatus,
     entity_key.cdc_state_cases: StateCases,
     entity_key.cdc_state_deaths: StateDeaths,
     entity_key.cdc_state_tests: StateTests,
