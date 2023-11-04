@@ -66,11 +66,9 @@ class ChildCareCenter(ResourceEntity):
             records = json.loads(requests.request('GET', request_url).content.decode('utf-8'))
             
             for record in records:
-                if 'zipcode' in record:
-                    center_name = record['centername'].lower()
-                    if center_name not in center_name_set:
-                        self.records.append(record)
-                        center_name_set.add(center_name)
+                if 'zipcode' in record and record['centername'].lower() not in center_name_set:
+                    self.records.append(record)
+                    center_name_set.add(record['centername'].lower())
             
             continue_fetching = len(records) == 10000
             offset += (10000 if continue_fetching else 0)
