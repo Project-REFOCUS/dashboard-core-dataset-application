@@ -51,7 +51,6 @@ class ChildCareCenter(ResourceEntity):
         if self.cacheable_fields is not None:
             records = self.mysql_client.select(self.table_name)
             for record in records:
-
                 for field in self.cacheable_fields:
                     self.record_cache[str(record[field]).lower()] = record
 
