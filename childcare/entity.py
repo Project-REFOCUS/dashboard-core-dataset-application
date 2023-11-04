@@ -42,11 +42,18 @@ class ChildCareCenter(ResourceEntity):
         self.cacheable_fields = ['center_name']
 
     def skip_record(self, record):
-        if self.record_cache:
-            for key, value in self.record_cache.items():
-                if record['centername'].lower() == str(key).lower():
-                    return True
-        return False
+        return self.record_cache and record['centername'].lower() in self.record_cache
+    
+    def load_cache(self):
+        if self.record_cache is None:
+            self.record_cache = {}
+
+        if self.cacheable_fields is not None:
+            records = self.mysql_client.select(self.table_name)
+            for record in records:
+
+                for field in self.cacheable_fields:
+                    self.record_cache[str(record[field]).lower()] = record
 
     def fetch(self):
         self.records = []
