@@ -47,17 +47,24 @@ class WholesaleMarket(ResourceEntity):
     def skip_record(self, record):
         response = False
 
-        if self.record_cache:
-            for key, value in self.record_cache.items():
-                if record['account_name'].lower() == str(key).lower():
-                    return True
-        
-        if 'application_type' not in record or record['application_type'] is None or ALPHA_ONLY_PATTERN.match(record['application_type']) is None:
+        if self.record_cache and record['account_name'].lower() in self.record_cache:
+            response = True
+        elif 'application_type' not in record or record['application_type'] is None or ALPHA_ONLY_PATTERN.match(record['application_type']) is None:
             response = True
         elif 'postcode' not in record or record['postcode'] is None or ZIPCODE_PATTERN.match(record['postcode']) is None:
             response = True
         
         return response
+    
+    def load_cache(self):
+        if self.record_cache is None:
+            self.record_cache = {}
+
+        if self.cacheable_fields is not None:
+            records = self.mysql_client.select(self.table_name)
+            for record in records:
+                for field in self.cacheable_fields:
+                    self.record_cache[str(record[field]).lower()] = record
 
 
     def fetch(self):
