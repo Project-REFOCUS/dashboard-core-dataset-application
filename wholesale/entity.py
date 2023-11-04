@@ -19,7 +19,6 @@ class WholesaleMarket(ResourceEntity):
     def dependencies():
         return[
             entity_key.census_us_zipcode,
-            entity_key.calendar_date,
             entity_key.wholesale_market_app_type
         ]
 
@@ -51,9 +50,9 @@ class WholesaleMarket(ResourceEntity):
         if self.record_cache:
             for key, value in self.record_cache.items():
                 if record['account_name'].lower() == str(key).lower():
-                    response = True
-                    break
-        elif 'application_type' not in record or record['application_type'] is None or ALPHA_ONLY_PATTERN.match(record['application_type']) is None:
+                    return True
+        
+        if 'application_type' not in record or record['application_type'] is None or ALPHA_ONLY_PATTERN.match(record['application_type']) is None:
             response = True
         elif 'postcode' not in record or record['postcode'] is None or ZIPCODE_PATTERN.match(record['postcode']) is None:
             response = True
