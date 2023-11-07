@@ -41,6 +41,8 @@ class EntityKey:
     cdc_waste_water = 'cdc.waste_water'
     childcare_center = 'childcare.center'
     childcare_center_type = 'childcare.center_type'
+    wholesale_market_app_type = 'wholesale.application_type'
+    wholesale_market = 'wholesale.market'
 
 
 class CacheId:

@@ -28,6 +28,8 @@ from twitter.terms import TwitterTerms, TwitterTermsFrequency
 from cdc.wastewater import WasteWater
 from childcare.entity import ChildCareCenter
 from childcare.caretype import ChildCareType
+from wholesale.entity import WholesaleMarket
+from wholesale.application import MarketApplicationType
 
 
 entity_map = {
@@ -72,5 +74,7 @@ entity_map = {
     entity_key.snap_nyc_data: NYCCountySnap,
     entity_key.mvc_nyc_crashes: NYCMotorVehicleCollisions,
     entity_key.childcare_center: ChildCareCenter,
-    entity_key.childcare_center_type: ChildCareType
+    entity_key.childcare_center_type: ChildCareType,
+    entity_key.wholesale_market_app_type: MarketApplicationType,
+    entity_key.wholesale_market: WholesaleMarket
 }

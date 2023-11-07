@@ -81,6 +81,7 @@ if __name__ == '__main__':
         entity_key.cdc_waste_water,
         entity_key.epa_ejscreen_value,
         entity_key.childcare_center,
+        entity_key.wholesale_market
     ]
     debug('Application starting...')
     execute(root_entities)
