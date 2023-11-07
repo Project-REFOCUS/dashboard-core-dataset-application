@@ -64,6 +64,7 @@ if __name__ == '__main__':
         entity_key.census_state_population,
         entity_key.census_county_population,
         entity_key.census_city_population,
+        entity_key.census_employment_status,
         # entity_key.cdc_state_cases,
         entity_key.cdc_state_deaths,
         # entity_key.cdc_state_tests,
@@ -79,6 +80,7 @@ if __name__ == '__main__':
         # entity_key.twitter_tweets_terms_frequency,
         entity_key.cdc_waste_water,
         entity_key.epa_ejscreen_value,
+        entity_key.childcare_center,
         entity_key.wholesale_market
     ]
     debug('Application starting...')

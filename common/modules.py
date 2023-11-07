@@ -8,6 +8,7 @@ from census.zipcode import USZipCode, USCityZipCodes
 from census.ethnicity import RaceEthnicity
 from census.tract import CensusTract
 from census.blockgroup import BlockGroup
+from census.employment import EmploymentStatus
 from common.constants import entity_key
 from cdc.cases import StateCases
 from cdc.deaths import StateDeaths
@@ -25,8 +26,11 @@ from twitter.accounts import TwitterAccountType, TwitterAccount
 from twitter.tweets import Tweets
 from twitter.terms import TwitterTerms, TwitterTermsFrequency
 from cdc.wastewater import WasteWater
+from childcare.entity import ChildCareCenter
+from childcare.caretype import ChildCareType
 from wholesale.entity import WholesaleMarket
 from wholesale.application import MarketApplicationType
+
 
 entity_map = {
     entity_key.calendar_date: CalendarDate,
@@ -49,6 +53,7 @@ entity_map = {
     entity_key.census_race_ethnicity: RaceEthnicity,
     entity_key.census_tract: CensusTract,
     entity_key.census_block_group: BlockGroup,
+    entity_key.census_employment_status: EmploymentStatus,
     entity_key.cdc_state_cases: StateCases,
     entity_key.cdc_state_deaths: StateDeaths,
     entity_key.cdc_state_tests: StateTests,
@@ -68,6 +73,8 @@ entity_map = {
     entity_key.cdc_waste_water: WasteWater,
     entity_key.snap_nyc_data: NYCCountySnap,
     entity_key.mvc_nyc_crashes: NYCMotorVehicleCollisions,
+    entity_key.childcare_center: ChildCareCenter,
+    entity_key.childcare_center_type: ChildCareType,
     entity_key.wholesale_market_app_type: MarketApplicationType,
     entity_key.wholesale_market: WholesaleMarket
 }

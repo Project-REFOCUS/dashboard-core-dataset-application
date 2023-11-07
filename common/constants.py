@@ -19,6 +19,7 @@ class EntityKey:
     census_race_ethnicity = 'census.race_ethnicity'
     census_tract = 'census.tract'
     census_block_group = 'census.block_group'
+    census_employment_status = 'census.employment_status'
     cdc_state_cases = 'cdc.state_cases'
     cdc_state_deaths = 'cdc.state_deaths'
     cdc_state_tests = 'cdc.state_tests'
@@ -38,6 +39,8 @@ class EntityKey:
     twitter_tweets_terms = 'twitter.tweets_terms'
     twitter_tweets_terms_frequency = 'twitter.tweets_terms_frequency'
     cdc_waste_water = 'cdc.waste_water'
+    childcare_center = 'childcare.center'
+    childcare_center_type = 'childcare.center_type'
     wholesale_market_app_type = 'wholesale.application_type'
     wholesale_market = 'wholesale.market'
 
