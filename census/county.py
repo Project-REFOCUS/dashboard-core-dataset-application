@@ -73,8 +73,8 @@ class CountyPopulation(ResourceEntity):
 
     def skip_record(self, record):
         county_entity = self.dependencies_map[entity_key.census_us_county]
-        county_id = county_entity.get_cached_value(record['county'])
-        return self.get_cached_value(county_id) is not None
+        county = county_entity.get_cached_value(record['county'])
+        return county is not None and self.get_cached_value(county['id']) is not None
 
     def fetch(self):
         url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=100&id=4'
