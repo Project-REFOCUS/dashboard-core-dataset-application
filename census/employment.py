@@ -28,6 +28,9 @@ class EmploymentStatus(ResourceEntity):
         ]
         self.cacheable_fields = ['census_tract_id']
 
+    def skip_record(self, record):
+        return self.record_cache and record['census_tract_id'] in self.record_cache
+
     def fetch(self):
         self.records = []
         census_tracts = self.mysql_client.select('census_tract')
