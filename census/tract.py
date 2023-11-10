@@ -16,6 +16,9 @@ class CensusTract(ResourceEntity):
     @staticmethod
     def dependencies():
         return [entity_key.census_us_county]
+    
+    def format_census_tract(self, subject_tract):
+        return subject_tract.replace(';',',').replace('├▒','n').lower()
 
     def get_county_id(self, record, field):
         county_entity = self.dependencies_map[entity_key.census_us_county]
@@ -32,11 +35,24 @@ class CensusTract(ResourceEntity):
             {'field': 'code', 'column': 'county_id', 'data': self.get_county_id}
         ]
 
-        self.cacheable_fields = ['fips']
+        self.cacheable_fields = ['fips','name','id']
 
     def skip_record(self, record):
         return 'code' in record and '$' in record['code'] \
             or 'fips' in record and record['fips'] in self.record_cache
+    
+    def load_cache(self):
+        if self.record_cache is None:
+            self.record_cache = {}
+
+        if self.cacheable_fields is not None:
+            records = self.mysql_client.select(self.table_name)
+            for record in records:
+                for field in self.cacheable_fields:
+                    if field == 'name':
+                        self.record_cache[self.format_census_tract(str(record[field]))] = record
+                    else:
+                        self.record_cache[str(record[field])] = record
 
     def fetch(self):
         base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900&id=6&showComponents=false'

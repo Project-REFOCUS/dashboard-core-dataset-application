@@ -18,6 +18,9 @@ class BlockGroup(ResourceEntity):
     @staticmethod
     def dependencies():
         return [entity_key.census_tract]
+    
+    def format_block_group(self, subject_block):
+        return subject_block.replace(';',',').replace('├▒','n').lower()
 
     def get_census_tract_id(self, record, field):
         census_tract_entity = self.dependencies_map[entity_key.census_tract]
@@ -35,11 +38,24 @@ class BlockGroup(ResourceEntity):
             {'field': 'code', 'column': 'census_tract_id', 'data': self.get_census_tract_id}
         ]
 
-        self.cacheable_fields = ['name', 'fips']
+        self.cacheable_fields = ['name', 'fips', 'id']
 
     def skip_record(self, record):
         return 'code' in record and '$' in record['code'] \
             or 'name' in record and record['name'] in self.record_cache
+    
+    def load_cache(self):
+        if self.record_cache is None:
+            self.record_cache = {}
+
+        if self.cacheable_fields is not None:
+            records = self.mysql_client.select(self.table_name)
+            for record in records:
+                for field in self.cacheable_fields:
+                    if field == 'name':
+                        self.record_cache[self.format_block_group(str(record[field]))] = record
+                    else:
+                        self.record_cache[str(record[field])] = record
 
     def has_data(self):
         self.load_cache()
