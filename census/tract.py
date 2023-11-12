@@ -1,6 +1,7 @@
 from common.constants import entity_key
 from common.utils import progress
 from entity.abstract import ResourceEntity
+from census.abstract import CensusPopulationResourceEntity
 
 import requests
 import json
@@ -84,7 +85,7 @@ class CensusTract(ResourceEntity):
             progress(records_fetched, record_count, 'Records fetched')
 
 
-class TractPopulation(ResourceEntity):
+class TractPopulation(CensusPopulationResourceEntity):
 
     @staticmethod
     def dependencies():
@@ -129,18 +130,5 @@ class TractPopulation(ResourceEntity):
                     self.record_cache[formatted_tract] = record
 
     def fetch(self):
-        api_url = 'https://data.census.gov/api/access/data/table' + \
-            '?id=ACSDT5Y2020.B01003&g=010XX00US$1400000'
-
-        self.records = []
-        duplicate_set = set()
-
-        response = json.loads(requests.request('GET', api_url).content.decode('utf-8'))
-        data = response['response']['data']
-        # Note: the first element is improper
-        data.pop(0)
-        population_index = 2
-        zipcode_index = 5
-        for record in data:
-            if record[zipcode_index] not in duplicate_set:
-                self.records.append({'population': record[population_index], 'census_tract': record[zipcode_index]})
+        api_path = '?id=ACSDT5Y2020.B01003&g=010XX00US$1400000'
+        self.fetch_resource(api_path, 'census_tract')

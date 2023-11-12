@@ -2,6 +2,7 @@ from census.constants import ignored_states
 from common import constants, http, utils
 from entity.abstract import ResourceEntity
 from common.constants import entity_key
+from census.abstract import CensusPopulationResourceEntity
 
 import requests
 import json
@@ -161,7 +162,7 @@ class USCityZipCodes(ResourceEntity):
         self.fetch()
 
 
-class ZipcodePopulation(ResourceEntity):
+class ZipcodePopulation(CensusPopulationResourceEntity):
 
     @staticmethod
     def dependencies():
@@ -189,19 +190,5 @@ class ZipcodePopulation(ResourceEntity):
         return self.record_cache and str(self.get_zipcode_id(record, 'zipcode')) in self.record_cache
 
     def fetch(self):
-        api_url = 'https://data.census.gov/api/access/data/table' + \
-            '?id=ACSDT5Y2020.B01003&g=010XX00US$8600000'
-        
-        self.records = []
-        duplicate_set = set()
-            
-        response = json.loads(requests.request('GET', api_url).content.decode('utf-8'))
-        data = response['response']['data']
-        # Note: the first element is improper
-        data.pop(0)
-        population_index = 2
-        zipcode_index = 5
-        for record in data:
-            if record[zipcode_index] not in duplicate_set:
-                duplicate_set.add(record[zipcode_index])
-                self.records.append({'population': record[population_index], 'zipcode': record[zipcode_index]})
+        api_path = '?id=ACSDT5Y2020.B01003&g=010XX00US$8600000'
+        self.fetch_resource(api_path, 'zipcode')

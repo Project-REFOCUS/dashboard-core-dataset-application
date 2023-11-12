@@ -1,6 +1,7 @@
 from common.constants import entity_key
 from common.utils import progress
 from entity.abstract import ResourceEntity
+from census.abstract import CensusPopulationResourceEntity
 
 import requests
 import json
@@ -95,7 +96,7 @@ class BlockGroup(ResourceEntity):
             census_tract_index += 1
 
 
-class BlockGroupPopulation(ResourceEntity):
+class BlockGroupPopulation(CensusPopulationResourceEntity):
 
     @staticmethod
     def dependencies():
@@ -105,7 +106,7 @@ class BlockGroupPopulation(ResourceEntity):
 
     @staticmethod
     def format_block_group(block_group):
-        return block_group.replace('ñ','n').replace('├│','ó').replace('├¡','í').replace('├í','á').replace('├╝','ü').lower()
+        return block_group.replace('ñ','n').lower()
 
     def get_block_group_id(self, record, field):
         block_group_entity = self.dependencies_map[entity_key.census_block_group]
@@ -140,18 +141,5 @@ class BlockGroupPopulation(ResourceEntity):
                     self.record_cache[formatted_block_group] = record
 
     def fetch(self):
-        api_url = 'https://data.census.gov/api/access/data/table' + \
-            '?id=ACSDT5Y2020.B01003&g=010XX00US$1500000'
-    
-        self.records = []
-        duplicate_set = set()
-        
-        response = json.loads(requests.request('GET', api_url).content.decode('utf-8'))
-        data = response['response']['data']
-        # Note that the first element is improper
-        data.pop(0)
-        population_index = 2
-        zipcode_index = 5
-        for record in data:
-            if record[zipcode_index] not in duplicate_set:
-                self.records.append({'population': record[population_index], 'block_group': record[zipcode_index]})
+        api_path = '?id=ACSDT5Y2020.B01003&g=010XX00US$1500000'
+        self.fetch_resource(api_path, 'block_group')
