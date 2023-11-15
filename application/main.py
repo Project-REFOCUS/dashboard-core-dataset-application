@@ -81,7 +81,10 @@ if __name__ == '__main__':
         entity_key.cdc_waste_water,
         entity_key.epa_ejscreen_value,
         entity_key.childcare_center,
-        entity_key.wholesale_market
+        entity_key.wholesale_market,
+        entity_key.census_zipcode_population,
+        entity_key.census_tract_population,
+        entity_key.census_block_group_population,
     ]
     debug('Application starting...')
     execute(root_entities)

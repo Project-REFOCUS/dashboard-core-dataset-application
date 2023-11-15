@@ -4,10 +4,10 @@ from census.city import USCity, USCityType, USCountyCities, CityPopulation
 from census.county import USCounty, CountyPopulation
 from census.state import USState, StatePopulation
 from census.metro import USMetroArea
-from census.zipcode import USZipCode, USCityZipCodes
+from census.zipcode import USZipCode, USCityZipCodes, ZipcodePopulation
 from census.ethnicity import RaceEthnicity
-from census.tract import CensusTract
-from census.blockgroup import BlockGroup
+from census.tract import CensusTract, TractPopulation
+from census.blockgroup import BlockGroup, BlockGroupPopulation
 from census.employment import EmploymentStatus
 from common.constants import entity_key
 from cdc.cases import StateCases
@@ -76,5 +76,8 @@ entity_map = {
     entity_key.childcare_center: ChildCareCenter,
     entity_key.childcare_center_type: ChildCareType,
     entity_key.wholesale_market_app_type: MarketApplicationType,
-    entity_key.wholesale_market: WholesaleMarket
+    entity_key.wholesale_market: WholesaleMarket,
+    entity_key.census_zipcode_population: ZipcodePopulation,
+    entity_key.census_tract_population: TractPopulation,
+    entity_key.census_block_group_population: BlockGroupPopulation,
 }

@@ -1,6 +1,8 @@
 from census.constants import ignored_states
 from common import constants, http, utils
 from entity.abstract import ResourceEntity
+from common.constants import entity_key
+from census.abstract import CensusPopulationResourceEntity
 
 import requests
 import json
@@ -158,3 +160,35 @@ class USCityZipCodes(ResourceEntity):
         super().after_save()
         # Fetch zipcodes from the next state
         self.fetch()
+
+
+class ZipcodePopulation(CensusPopulationResourceEntity):
+
+    @staticmethod
+    def dependencies():
+        return[
+            entity_key.census_us_zipcode,
+        ]
+
+    def get_zipcode_id(self, record, field):
+        zipcode_value = record[field].split()[1]
+        zipcode_entity = self.dependencies_map[entity_key.census_us_zipcode]
+        zipcode = zipcode_entity.get_cached_value(zipcode_value)
+        return zipcode['id'] if zipcode else None
+    
+    def __init__(self):
+        super().__init__()
+
+        self.table_name = 'zipcode_population_2020'
+        self.fields = [
+            {'field': 'population'},
+            {'field': 'zipcode', 'column': 'zipcode_id', 'data': self.get_zipcode_id},
+        ]
+        self.cacheable_fields = ['zipcode_id']
+
+    def skip_record(self, record):
+        return self.record_cache and str(self.get_zipcode_id(record, 'zipcode')) in self.record_cache
+
+    def fetch(self):
+        api_path = '?id=ACSDT5Y2020.B01003&g=010XX00US$8600000'
+        self.fetch_resource(api_path, 'zipcode')

@@ -43,6 +43,9 @@ class EntityKey:
     childcare_center_type = 'childcare.center_type'
     wholesale_market_app_type = 'wholesale.application_type'
     wholesale_market = 'wholesale.market'
+    census_zipcode_population = 'census.zipcode_population'
+    census_tract_population = 'census.tract_population'
+    census_block_group_population = 'census.block_group_population'
 
 
 class CacheId:
