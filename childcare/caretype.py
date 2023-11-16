@@ -6,7 +6,7 @@ import json
 import requests
 
 API_URL = 'https://data.cityofnewyork.us/resource/dsg6-ifza.json' + \
-    '?$select=`childcaretype`' + \
+    '?$select=`childcaretype`,`zipcode`' + \
     '&$where=inspectiondate >= \'{}\' and inspectiondate < \'{}\'&$limit=10000&$offset={}'+ \
     '&$order=inspectiondate'
 
