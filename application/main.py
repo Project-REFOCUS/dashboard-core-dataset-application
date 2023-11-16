@@ -79,7 +79,7 @@ if __name__ == '__main__':
         # entity_key.twitter_tweets_terms,
         # entity_key.twitter_tweets_terms_frequency,
         entity_key.cdc_waste_water,
-        entity_key.epa_ejscreen_value,
+        # entity_key.epa_ejscreen_value,
         entity_key.childcare_center,
         entity_key.wholesale_market,
         entity_key.census_zipcode_population,
