@@ -43,6 +43,17 @@ class CensusTract(ResourceEntity):
         return 'code' in record and '$' in record['code'] \
             or 'fips' in record and record['fips'] in self.record_cache
     
+    def update_record(self, record):
+        subject = record['name'].lower()
+        
+        return (subject.contains('puerto rico') or subject.contains('new mexico')) \
+            and 'fips' in record and record['fips'] in self.record_cache
+    
+    def create_update_record(self, record):
+        cached_record = self.record_cache[record['fips']]
+        record_id = cached_record['id']
+        return {'fields': ['name'], 'values': [record['name']], 'clause': f'id = {record_id}'}
+    
     def load_cache(self):
         if self.record_cache is None:
             self.record_cache = {}
@@ -62,6 +73,7 @@ class CensusTract(ResourceEntity):
         resolved_county_fips = set()
 
         self.records = []
+        self.updates = []
         record_count = len(county_cache)
         records_fetched = 0
         for tract_name in self.record_cache:
