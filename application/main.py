@@ -58,7 +58,7 @@ if __name__ == '__main__':
         # entity_key.census_us_city_zipcode,
         # entity_key.snap_nyc_data,
         # entity_key.mvc_nyc_crashes,
-        # entity_key.census_block_group,
+        entity_key.census_block_group,
         # entity_key.calendar_date,
         # entity_key.calendar_holiday_date,
         # entity_key.census_state_population,
@@ -79,12 +79,14 @@ if __name__ == '__main__':
         # # entity_key.twitter_tweets_terms,
         # # entity_key.twitter_tweets_terms_frequency,
         # entity_key.cdc_waste_water,
-        # entity_key.epa_ejscreen_value,
-        entity_key.childcare_center,
+        entity_key.epa_ejscreen_value,
+        # entity_key.childcare_center,
         # entity_key.wholesale_market,
         # entity_key.census_zipcode_population,
-        entity_key.census_tract_population,
+        # entity_key.census_tract_population,
         entity_key.census_block_group_population,
+        entity_key.census_tract_accent_update,
+        entity_key.census_block_group_accent_update
     ]
     debug('Application starting...')
     execute(root_entities)

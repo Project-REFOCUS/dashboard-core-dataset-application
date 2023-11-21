@@ -6,7 +6,7 @@ from census.abstract import CensusPopulationResourceEntity
 import requests
 import json
 
-FETCHED_RECORDS_THRESHOLD = 10000
+record_count = 10000
 
 
 def get_block_group_fips(record, field):
@@ -44,7 +44,7 @@ class BlockGroup(ResourceEntity):
 
     def skip_record(self, record):
         return 'code' in record and '$' in record['code'] \
-            or 'name' in record and record['name'] in self.record_cache
+            or 'name' in record and self.format_block_group(record['name']) in self.record_cache
     
     def load_cache(self):
         if self.record_cache is None:
@@ -80,7 +80,7 @@ class BlockGroup(ResourceEntity):
 
         census_tract_keys = list(census_tract_cache.keys())
         census_tract_index = 0
-        while records_fetched < FETCHED_RECORDS_THRESHOLD and census_tract_index < len(census_tract_keys):
+        while records_fetched < record_count and census_tract_index < len(census_tract_keys):
             census_tract_key = census_tract_keys[census_tract_index]
             census_tract = census_tract_cache[census_tract_key]
             census_tract_fips = census_tract['fips']
@@ -91,7 +91,7 @@ class BlockGroup(ResourceEntity):
 
                 self.records.extend(response_content['response']['geos']['items'])
                 records_fetched += 1
-                progress(records_fetched, FETCHED_RECORDS_THRESHOLD, 'Records fetched')
+                progress(records_fetched, record_count, 'Records fetched')
 
             census_tract_index += 1
 
@@ -143,3 +143,81 @@ class BlockGroupPopulation(CensusPopulationResourceEntity):
     def fetch(self):
         api_path = '?id=ACSDT5Y2020.B01003&g=010XX00US$1500000'
         self.fetch_resource(api_path, 'block_group')
+
+
+class BlockGroupAccentUpdate(ResourceEntity):
+
+    @staticmethod
+    def dependencies():
+        return [entity_key.census_tract, entity_key.census_block_group]
+    
+    @staticmethod
+    def format_block_group(subject_block):
+        return subject_block.replace('├▒','ñ').replace('├│','ó').replace('├¡','í').replace('├í','á').replace('├╝','ü')
+
+    def __init__(self):
+        super().__init__()
+        self.table_name = 'block_group'
+        self.record_cache = {}
+
+        self.cacheable_fields = ['name']
+
+    def skip_record(self, record):
+        return 'code' in record and '$' in record['code'] \
+            or 'name' in record and record['name'] in self.record_cache
+    
+    def update_record(self, record):
+        subject = record['name'].lower()
+        block_group_entity = self.dependencies_map[entity_key.census_block_group]
+        
+        return ('puerto rico' in subject or 'new mexico' in subject) \
+            and ('code' in record and '$' not in record['code']) \
+            and ('name' in record and record['name'] in self.record_cache)
+    
+    def create_update_record(self, record):
+        cached_record = self.get_cached_value(record['name'])
+        record_id = cached_record['id']
+        return {'fields': ['name'], 'values': [record['name']], 'clause': f'id = {record_id}'}
+    
+    def load_cache(self):
+        if self.record_cache is None:
+            self.record_cache = {}
+
+        if self.cacheable_fields is not None:
+            records = self.mysql_client.select(self.table_name)
+            for record in records:
+                for field in self.cacheable_fields:
+                    if field == 'name':
+                        self.record_cache[self.format_block_group(str(record[field]))] = record
+                    else:
+                        self.record_cache[str(record[field])] = record
+
+    def fetch(self):
+        base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900&id=7&showComponents=false'
+        resolved_census_tract_fips = set()
+        record_count = 7897
+        census_tract_entity = self.dependencies_map[entity_key.census_tract]
+
+        self.records = []
+        self.updates = []
+
+        records_fetched = 0
+        for block_group_key in self.record_cache:
+            cached_block_group = self.record_cache[block_group_key]
+            block_group_name = cached_block_group['name'].lower()
+            census_tract = census_tract_entity.get_cached_value(cached_block_group['census_tract_id'])
+            census_tract_fips = census_tract['fips']
+
+            if ('puerto rico' in block_group_name or 'new mexico' in block_group_name) \
+                and census_tract_fips not in resolved_census_tract_fips:
+
+                block_group_url = f'{base_url}&within=1400000US{census_tract_fips}'
+                response = requests.request('GET', block_group_url)
+                response_content = json.loads(response.content)
+                response_records = response_content['response']['geos']['items']
+                
+                self.records.extend(response_records)
+                        
+            resolved_census_tract_fips.add(census_tract_fips)
+            records_fetched += 1
+            progress(records_fetched, record_count, 'Records fetched')

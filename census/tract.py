@@ -20,7 +20,7 @@ class CensusTract(ResourceEntity):
     
     @staticmethod
     def format_census_tract(subject_tract):
-        return subject_tract.replace(';',',').replace('├▒','n').replace('├│','ó').replace('├¡','í').replace('├í','á').replace('├╝','ü').lower()
+        return subject_tract.replace(';',',').lower()
 
     def get_county_id(self, record, field):
         county_entity = self.dependencies_map[entity_key.census_us_county]
@@ -43,17 +43,6 @@ class CensusTract(ResourceEntity):
         return 'code' in record and '$' in record['code'] \
             or 'fips' in record and record['fips'] in self.record_cache
     
-    def update_record(self, record):
-        subject = record['name'].lower()
-        
-        return (subject.contains('puerto rico') or subject.contains('new mexico')) \
-            and 'fips' in record and record['fips'] in self.record_cache
-    
-    def create_update_record(self, record):
-        cached_record = self.record_cache[record['fips']]
-        record_id = cached_record['id']
-        return {'fields': ['name'], 'values': [record['name']], 'clause': f'id = {record_id}'}
-    
     def load_cache(self):
         if self.record_cache is None:
             self.record_cache = {}
@@ -73,7 +62,6 @@ class CensusTract(ResourceEntity):
         resolved_county_fips = set()
 
         self.records = []
-        self.updates = []
         record_count = len(county_cache)
         records_fetched = 0
         for tract_name in self.record_cache:
@@ -88,7 +76,7 @@ class CensusTract(ResourceEntity):
             if county_fips not in resolved_county_fips:
                 census_tract_url = f'{base_url}&within=050XX00US{county_fips}'
                 response = requests.request('GET', census_tract_url)
-                response_content = json.loads(response.content.decode('cp437'))
+                response_content = json.loads(response.content)
 
                 self.records.extend(response_content['response']['geos']['items'])
                 resolved_county_fips.add(county_fips)
@@ -107,7 +95,7 @@ class TractPopulation(CensusPopulationResourceEntity):
 
     @staticmethod
     def format_census_tract(subject_tract):
-        return subject_tract.replace('ñ','n').lower()
+        return subject_tract.lower()
 
     def get_tract_id(self, record, field):
         tract_entity = self.dependencies_map[entity_key.census_tract]
@@ -144,3 +132,58 @@ class TractPopulation(CensusPopulationResourceEntity):
     def fetch(self):
         api_path = '?id=ACSDT5Y2020.B01003&g=010XX00US$1400000'
         self.fetch_resource(api_path, 'census_tract')
+        
+class CensusTractAccentUpdate(ResourceEntity):
+
+    @staticmethod
+    def dependencies():
+        return [entity_key.census_us_county, entity_key.census_tract]
+
+    def __init__(self):
+        super().__init__()
+        self.table_name = 'census_tract'
+        self.cacheable_fields = ['fips']
+        
+    def skip_record(self, record):
+        return 'code' in record and ('$' in record['code'] \
+            or get_census_tract_fips(record, 'code') in self.record_cache)
+    
+    def update_record(self, record):
+        subject = record['name'].lower()
+        tract_entity = self.dependencies_map[entity_key.census_tract]
+        
+        return ('puerto rico' in subject or 'new mexico' in subject) \
+            and ('code' in record and get_census_tract_fips(record, 'code') in self.record_cache \
+            and '$' not in record['code'])
+    
+    def create_update_record(self, record):
+        tract_entity = self.dependencies_map[entity_key.census_tract]
+        cached_record = tract_entity.get_cached_value(get_census_tract_fips(record, 'code'))
+        record_id = cached_record['id']
+        return {'fields': ['name'], 'values': [record['name']], 'clause': f'id = {record_id}'}
+
+    def fetch(self):
+        base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900&id=6&showComponents=false'
+        county_cache = self.dependencies_map[entity_key.census_us_county].record_cache
+
+        self.records = []
+        self.updates = []
+        record_count = len(county_cache)
+        records_fetched = 0
+        for tract_name in self.record_cache:
+            cached_tract = self.record_cache[tract_name]
+            county_fips = cached_tract['fips'][0:5]
+
+        for county_key in county_cache:
+            county = county_cache[county_key]
+            county_fips = county['fips']
+            county_name = county['name'].lower()
+            if 'puerto rico' in county_name or 'new mexico' in county_name:
+                census_tract_url = f'{base_url}&within=050XX00US{county_fips}'
+                response = requests.request('GET', census_tract_url)
+                response_content = json.loads(response.content)
+
+                self.records.extend(response_content['response']['geos']['items'])
+
+            records_fetched += 1
+            progress(records_fetched, record_count, 'Records fetched')
