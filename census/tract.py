@@ -170,9 +170,6 @@ class CensusTractAccentUpdate(ResourceEntity):
         self.updates = []
         record_count = len(county_cache)
         records_fetched = 0
-        for tract_name in self.record_cache:
-            cached_tract = self.record_cache[tract_name]
-            county_fips = cached_tract['fips'][0:5]
 
         for county_key in county_cache:
             county = county_cache[county_key]
