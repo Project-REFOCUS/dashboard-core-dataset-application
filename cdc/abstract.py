@@ -49,7 +49,8 @@ class CovidResourceEntity(ResourceEntity):
     def back_fill(self, value, prop):
         days_in_week = 7
         week_avg = int(value / days_in_week)
-        for index in range(1, days_in_week):
+        maximum = len(self.records) if len(self.records) < days_in_week else days_in_week
+        for index in range(1, maximum):
             self.records[-(index + 1)][prop] = week_avg
 
         self.records[-1][prop] = week_avg + (value % days_in_week)
@@ -80,7 +81,7 @@ class CovidResourceEntity(ResourceEntity):
                 records_by_date = records_by_state[state_abbrev]
                 response_content = json.loads(response.content)
 
-                for record in response_content['us_trend_by_Geography']:
+                for record in response_content['us_trend_by_Geography_v2']:
                     iso_date = str(datetime.strptime(record['week_ending_date'], '%Y-%m-%d').date())
                     records_by_date[iso_date] = record
 
