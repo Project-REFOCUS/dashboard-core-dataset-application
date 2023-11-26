@@ -68,7 +68,7 @@ class CovidResourceEntity(ResourceEntity):
             if state_object is not None:
                 state_abbrev = state_object['short_name']
                 request_id = f'{cache_id.us_trend_by}_{state_abbrev}'
-                cdc_url = f'https://covid.cdc.gov/covid-data-tracker/COVIDData/getAjaxData?id={request_id}'
+                cdc_url = f'https://covid.cdc.gov/covid-data-tracker/COVIDData/getAjaxData?id={request_id}_v2'
                 response = cached_request(request_id, 'GET', cdc_url)
                 if response.status_code != 200:
                     remove_cached_request(request_id)
@@ -81,7 +81,7 @@ class CovidResourceEntity(ResourceEntity):
                 response_content = json.loads(response.content)
 
                 for record in response_content['us_trend_by_Geography']:
-                    iso_date = str(datetime.strptime(record['date'], '%b %d %Y').date())
+                    iso_date = str(datetime.strptime(record['week_ending_date'], '%Y-%m-%d').date())
                     records_by_date[iso_date] = record
 
                 current_date = datetime(2020, 1, 1).date()
