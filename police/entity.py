@@ -7,7 +7,8 @@ import requests
 import csv
 import io
 
-URL = 'https://raw.githubusercontent.com/washingtonpost/data-police-shootings/master/fatal-police-shootings-data.csv'
+URL = 'https://raw.githubusercontent.com/washingtonpost/data-police-shootings/master/v1/fatal-police-shootings-data.csv'
+
 
 race_ethnicity_mapping = {
     'A': 'Asian',
