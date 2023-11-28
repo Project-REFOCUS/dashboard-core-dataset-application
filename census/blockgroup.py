@@ -33,6 +33,7 @@ class BlockGroup(ResourceEntity):
         super().__init__()
         self.table_name = 'block_group'
         self.record_cache = {}
+        self.fetch_complete = False
 
         self.fields = [
             {'field': 'name'},
@@ -62,7 +63,7 @@ class BlockGroup(ResourceEntity):
     def has_data(self):
         self.load_cache()
         self.fetch()
-        return super().has_data()
+        return super().has_data() and self.fetch_complete is False
 
     def fetch(self):
         base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900&id=7&showComponents=false'
@@ -94,6 +95,9 @@ class BlockGroup(ResourceEntity):
                 progress(records_fetched, record_count, 'Records fetched')
 
             census_tract_index += 1
+        self.fetch_complete = records_fetched < record_count
+        
+            
 
 
 class BlockGroupPopulation(CensusPopulationResourceEntity):
