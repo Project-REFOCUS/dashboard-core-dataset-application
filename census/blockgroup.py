@@ -22,7 +22,7 @@ class BlockGroup(ResourceEntity):
     
     @staticmethod
     def format_block_group(subject_block):
-        return subject_block.replace(';',',').replace('├▒','n').replace('├│','ó').replace('├¡','í').replace('├í','á').replace('├╝','ü').lower()
+        return subject_block.replace(';',',').replace('├▒','ñ').replace('├│','ó').replace('├¡','í').replace('├í','á').replace('├╝','ü').lower()
 
     def get_census_tract_id(self, record, field):
         census_tract_entity = self.dependencies_map[entity_key.census_tract]
@@ -33,6 +33,7 @@ class BlockGroup(ResourceEntity):
         super().__init__()
         self.table_name = 'block_group'
         self.record_cache = {}
+        self.fetch_complete = False
 
         self.fields = [
             {'field': 'name'},
@@ -44,7 +45,7 @@ class BlockGroup(ResourceEntity):
 
     def skip_record(self, record):
         return 'code' in record and '$' in record['code'] \
-            or 'name' in record and record['name'] in self.record_cache
+            or 'name' in record and self.format_block_group(record['name']) in self.record_cache
     
     def load_cache(self):
         if self.record_cache is None:
@@ -60,8 +61,9 @@ class BlockGroup(ResourceEntity):
                         self.record_cache[str(record[field])] = record
 
     def has_data(self):
-        self.load_cache()
-        self.fetch()
+        if self.fetch_complete is False:
+            self.load_cache()
+            self.fetch()
         return super().has_data()
 
     def fetch(self):
@@ -88,12 +90,14 @@ class BlockGroup(ResourceEntity):
                 block_group_url = f'{base_url}&within=1400000US{census_tract_fips}'
                 response = requests.request('GET', block_group_url)
                 response_content = json.loads(response.content.decode('cp437'))
-
+                resolved_census_tract_fips.add(census_tract_fips)
+                
                 self.records.extend(response_content['response']['geos']['items'])
                 records_fetched += 1
                 progress(records_fetched, FETCHED_RECORDS_THRESHOLD, 'Records fetched')
 
             census_tract_index += 1
+        self.fetch_complete = records_fetched < FETCHED_RECORDS_THRESHOLD
 
 
 class BlockGroupPopulation(CensusPopulationResourceEntity):

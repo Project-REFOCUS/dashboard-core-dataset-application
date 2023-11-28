@@ -20,7 +20,7 @@ class CensusTract(ResourceEntity):
     
     @staticmethod
     def format_census_tract(subject_tract):
-        return subject_tract.replace(';',',').replace('├▒','n').replace('├│','ó').replace('├¡','í').replace('├í','á').replace('├╝','ü').lower()
+        return subject_tract.replace(';',',').replace('├▒','ñ').replace('├│','ó').replace('├¡','í').replace('├í','á').replace('├╝','ü').lower()
 
     def get_county_id(self, record, field):
         county_entity = self.dependencies_map[entity_key.census_us_county]
@@ -95,7 +95,7 @@ class TractPopulation(CensusPopulationResourceEntity):
 
     @staticmethod
     def format_census_tract(subject_tract):
-        return subject_tract.replace('ñ','n').lower()
+        return subject_tract.lower()
 
     def get_tract_id(self, record, field):
         tract_entity = self.dependencies_map[entity_key.census_tract]
