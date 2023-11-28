@@ -61,9 +61,10 @@ class BlockGroup(ResourceEntity):
                         self.record_cache[str(record[field])] = record
 
     def has_data(self):
-        self.load_cache()
-        self.fetch()
-        return super().has_data() and self.fetch_complete is False
+        if self.fetch_complete is False:
+            self.load_cache()
+            self.fetch()
+        return super().has_data()
 
     def fetch(self):
         base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900&id=7&showComponents=false'
@@ -91,14 +92,13 @@ class BlockGroup(ResourceEntity):
                 response_content = json.loads(response.content.decode('cp437'))
 
                 self.records.extend(response_content['response']['geos']['items'])
+                resolved_census_tract_fips.add(census_tract_fips)
                 records_fetched += 1
                 progress(records_fetched, record_count, 'Records fetched')
 
             census_tract_index += 1
         self.fetch_complete = records_fetched < record_count
         
-            
-
 
 class BlockGroupPopulation(CensusPopulationResourceEntity):
 

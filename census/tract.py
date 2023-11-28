@@ -100,6 +100,8 @@ class TractPopulation(CensusPopulationResourceEntity):
     def get_tract_id(self, record, field):
         tract_entity = self.dependencies_map[entity_key.census_tract]
         tract = tract_entity.get_cached_value(self.format_census_tract(record[field]))
+        if tract is None:
+            print(str(record))
         return tract['id'] if tract else None
     
     def __init__(self):
