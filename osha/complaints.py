@@ -1,12 +1,9 @@
 from common.constants import entity_key
 from entity.abstract import ResourceEntity
-from pathlib import Path
-from io import BytesIO
 
 import requests
 import openpyxl
 import os
-import urllib
 
 
 URL = 'https://www.osha.gov/sites/default/files/' + \
@@ -28,10 +25,6 @@ def row_has_data(worksheet, index):
         column_index += 1
 
     return has_data
-
-def load_workbook_from_url(location):
-    file = urllib.request.urlopen(location).read()
-    return load_workbook(filename = BytesIO(file))
 
 class OshaClosedComplaints(ResourceEntity):
 
