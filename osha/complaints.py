@@ -5,8 +5,13 @@ import requests
 import openpyxl
 import os
 
+
 URL = 'https://www.osha.gov/sites/default/files/' + \
       'Closed_Federal_State_Plan_Valid_COVID-19_New_Complaints_0430_through_0715_2022.xlsx'
+
+HEADERS = {
+    'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
+}
 
 COLUMN_CODES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
 
@@ -20,7 +25,6 @@ def row_has_data(worksheet, index):
         column_index += 1
 
     return has_data
-
 
 class OshaClosedComplaints(ResourceEntity):
 
@@ -73,7 +77,7 @@ class OshaClosedComplaints(ResourceEntity):
         return record['UPA #'] in self.record_cache or self.get_city_id(record, 'Site City') is None
 
     def fetch(self):
-        request = requests.request('GET', URL)
+        request = requests.get(URL, headers=HEADERS)
 
         temp_file = open('temp.xlsx', 'wb')
         temp_file.write(request.content)
