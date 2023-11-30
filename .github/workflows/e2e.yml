@@ -13,8 +13,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.ACCESS_TOKEN }}
-          name: Project-REFOCUS/mysql-changeset-schematics
+          repository: Project-REFOCUS/mysql-changeset-schematics
           ref: refs/heads/main
+          path: mysql-changeset-schematics
         name: Checkout repository mysql-changeset-schematics repo
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          path: dashboard-core-dataset-application
       - name: Inspect contents of the workspace
         run: ls -a
