@@ -2,8 +2,8 @@
 name: e2e-testing
 
 on:
-  pull_request_target:
-    types: [ "opened", "synchronize" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   e2e-new-env:
@@ -11,4 +11,10 @@ jobs:
     name: End-To-End testing for New Environments
     steps:
       - uses: actions/checkout@v4
-        name: Checkout repository
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          name: Project-REFOCUS/mysql-changeset-schematics
+          ref: refs/heads/main
+        name: Checkout repository mysql-changeset-schematics repo
+      - name: Inspect contents of the workspace
+        run: ls -a
