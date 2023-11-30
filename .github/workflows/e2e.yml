@@ -21,5 +21,23 @@ jobs:
         with:
           token: ${{ secrets.ACCESS_TOKEN }}
           path: dashboard-core-dataset-application
+      - uses: keithweaver/aws-s3-github-action@v1.0.0
+        with:
+          command: cp
+          source: s3://project-refocus-shellscripts/dbcc.sh
+          destination: ./dbcc.sh
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+        name: Download database changeset scripts from S3
       - name: Inspect contents of the workspace
         run: ls -a
+      - name: Display all variables
+        run: echo "CHANGES_FILE=$CHANGES_FILE, CHANGES_HOME=$CHANGES_HOME, CHANGES_TABLE=$CHANGES_TABLE, CHANGES_ENV=$CHANGES_ENV, LOGIN_PATH=$LOGIN_PATH, APP_DB=$APP_DB"
+    env:
+      CHANGES_FILE: changes.txt
+      CHANGES_HOME: ${{ github.workspace }}
+      CHANGES_TABLE: e2e_testing_pr_${{ github.event.number }}
+      CHANGES_ENV: new_environment
+      LOGIN_PATH: gscbinc_root
+      APP_DB: e2e_testing_pr_${{ github.event.number }}
