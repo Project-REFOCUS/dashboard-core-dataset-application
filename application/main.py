@@ -70,7 +70,7 @@ if __name__ == '__main__':
         # entity_key.cdc_state_tests,
         entity_key.cdc_state_vaccinations,
         entity_key.cdc_county_deaths,
-        # entity_key.police_fatal_shootings,
+        entity_key.police_fatal_shootings,
         entity_key.apha_racism_declarations,
         # entity_key.ucla_covid_behind_bars,
         entity_key.osha_closed_complaints,
