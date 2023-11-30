@@ -1,0 +1,14 @@
+# This workflow deploys and end-to-end test for simulating runs on both new environments and existing environments
+name: e2e-testing
+
+on:
+  pull_request_target:
+    branches: [ "main" ]
+
+jobs:
+  e2e-new-env:
+    runs-on: ubuntu-latest
+    name: End-To-End testing for New Environments
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout repository

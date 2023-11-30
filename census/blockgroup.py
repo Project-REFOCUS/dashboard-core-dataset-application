@@ -100,13 +100,11 @@ class BlockGroupPopulation(CensusPopulationResourceEntity):
 
     @staticmethod
     def dependencies():
-        return[
-            entity_key.census_block_group
-        ]
+        return [entity_key.census_block_group]
 
     @staticmethod
     def format_block_group(block_group):
-        return block_group.replace('ñ','n').lower()
+        return block_group.replace('ñ', 'n').lower()
 
     def get_block_group_id(self, record, field):
         block_group_entity = self.dependencies_map[entity_key.census_block_group]
