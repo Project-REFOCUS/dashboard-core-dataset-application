@@ -12,7 +12,7 @@ class StateTests(CovidResourceEntity):
 
         self.table_name = 'state_tests'
         self.fields = [
-            {'field': '7_day_test_results_reported', 'column': 'tests', 'data': ensure_not_none},
+            {'field': 'number_tested', 'column': 'tests', 'data': ensure_not_none},
             {'field': 'date', 'column': 'calendar_date_id', 'data': self.get_calendar_date_id},
             {'field': 'state', 'column': 'state_id', 'data': self.get_state_id}
         ]
@@ -27,13 +27,13 @@ class StateTests(CovidResourceEntity):
         calendar_date_id = self.get_calendar_date_id(record, 'date')
         should_update = state_id in self.record_cache
         should_update = calendar_date_id in self.record_cache[state_id] if should_update else False
-        return should_update and ensure_not_none(record, '7_day_test_results_reported') != self.record_cache[state_id][calendar_date_id]['tests']
+        return should_update and ensure_not_none(record, 'number_tested') != self.record_cache[state_id][calendar_date_id]['tests']
 
     def create_update_record(self, record):
         state_id = self.get_state_id(record, 'state')
         calendar_date_id = self.get_calendar_date_id(record, 'date')
         record_id = self.record_cache[state_id][calendar_date_id]['id']
-        return {'fields': ['tests'], 'values': [ensure_not_none(record, '7_day_test_results_reported')], 'clause': f'id = {record_id}'}
+        return {'fields': ['tests'], 'values': [ensure_not_none(record, 'number_tested')], 'clause': f'id = {record_id}'}
 
     def fetch(self):
-        self.fetch_resource('7_day_test_results_reported')
+        self.fetch_resource('number_tested')
