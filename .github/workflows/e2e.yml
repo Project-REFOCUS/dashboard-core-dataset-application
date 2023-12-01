@@ -37,9 +37,9 @@ jobs:
       - name: Some basic logging
         run: echo "GITHUB_WORKSPACE=${{ github.workspace }}" && ls -al
       - name: Create base database schematics
-        run: chmod u+x ${{ github.workspace }}/application/e2e/createdb.sh && ${{ github.workspace }}/application/e2e/createdb.sh
+        run: chmod +x ${{ github.workspace }}/application/e2e/createdb.sh && ${{ github.workspace }}/application/e2e/createdb.sh
       - name: Execute database changesets
-        run: chmod u+x ${{ github.workspace }}/dbcc.sh && ${{ github.workspace }}/dbcc.sh
+        run: bash ./dbcc.sh
     env:
       CHANGES_FILE: changes.txt
       CHANGES_HOME: ${{ github.workspace }}/mysql-changeset-schematics
