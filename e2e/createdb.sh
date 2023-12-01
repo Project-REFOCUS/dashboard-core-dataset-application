@@ -10,4 +10,4 @@ mysql -uroot "changesets" -e "
   )
 "
 mysql -uroot -e "CREATE DATABASE project_refocus"
-mysql_config_editor -uroot --login-path=root --user root
+mysql_config_editor set --login-path=root --user root
