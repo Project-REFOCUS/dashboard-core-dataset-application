@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.ACCESS_TOKEN }}
-          path: dashboard-core-dataset-application
+          path: application
       - uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
@@ -37,7 +37,7 @@ jobs:
       - name: Some basic logging
         run: echo "GITHUB_WORKSPACE=${{ github.workspace }}" && ls -al
       - name: Create base database schematics
-        run: chmod +x ${{ github.workspace }}/e2e/createdb.sh && ${{ github.workspace }}/e2e/createdb.sh
+        run: chmod +x ${{ github.workspace }}/application/e2e/createdb.sh && ${{ github.workspace }}/application/e2e/createdb.sh
       - name: Execute database changesets
         run: chmod +x ${{ github.workspace }}/dbcc.sh && ${{ github.workspace }}/dbcc.sh
     env:
