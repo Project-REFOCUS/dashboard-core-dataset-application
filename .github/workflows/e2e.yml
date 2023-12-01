@@ -30,14 +30,18 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
         name: Download database changeset scripts from S3
-      - name: Inspect contents of the workspace
-        run: ls -a
-      - name: Display all variables
-        run: echo "CHANGES_FILE=$CHANGES_FILE, CHANGES_HOME=$CHANGES_HOME, CHANGES_TABLE=$CHANGES_TABLE, CHANGES_ENV=$CHANGES_ENV, LOGIN_PATH=$LOGIN_PATH, APP_DB=$APP_DB"
+      - uses: shogo82148/actions-setup-mysql@v1
+        name: Install MySQL version 8
+        with:
+          mysql-version: '8.0'
+      - name: Create base database schematics
+        run: chmod +x ${{ github.workspace }}/e2e/createdb.sh && ${{ github.workspace }}/e2e/createdb.sh
+      - name: Execute database changesets
+        run: chmod +x ${{ github.workspace }}/dbcc.sh && ${{ github.workspace }}/dbcc.sh
     env:
       CHANGES_FILE: changes.txt
-      CHANGES_HOME: ${{ github.workspace }}
-      CHANGES_TABLE: e2e_testing_pr_${{ github.event.number }}
+      CHANGES_HOME: ${{ github.workspace }}/mysql-changeset-schematics
+      CHANGES_TABLE: project_refocus
       CHANGES_ENV: new_environment
-      LOGIN_PATH: gscbinc_root
-      APP_DB: e2e_testing_pr_${{ github.event.number }}
+      LOGIN_PATH: root
+      APP_DB: project_refocus
