@@ -87,8 +87,7 @@ class BlockGroup(ResourceEntity):
             census_tract_fips = census_tract['fips']
             if census_tract_fips not in resolved_census_tract_fips:
                 block_group_url = f'{base_url}&within=1400000US{census_tract_fips}'
-                response = send_request('GET', block_group_url, 5, 2)
-                response_content = json.loads(response.content.decode('cp437'))
+                response_content = send_request('GET', block_group_url, 5, 2, encoding='cp437')
 
                 self.records.extend(response_content['response']['geos']['items'])
                 records_fetched += 1
