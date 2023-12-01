@@ -1,5 +1,6 @@
 from common.constants import entity_key
 from common.utils import progress
+from common.http import send_request
 from entity.abstract import ResourceEntity
 from census.abstract import CensusPopulationResourceEntity
 
@@ -75,7 +76,7 @@ class CensusTract(ResourceEntity):
             county_fips = county['fips']
             if county_fips not in resolved_county_fips:
                 census_tract_url = f'{base_url}&within=050XX00US{county_fips}'
-                response = requests.request('GET', census_tract_url)
+                response = send_request('GET', census_tract_url, 5, 2)
                 response_content = json.loads(response.content.decode('cp437'))
 
                 self.records.extend(response_content['response']['geos']['items'])
