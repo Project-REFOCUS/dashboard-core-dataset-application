@@ -11,3 +11,6 @@ mysql -uroot "changesets" -e "
 "
 mysql -uroot -e "CREATE DATABASE project_refocus"
 mysql_config_editor set --login-path=root --user root
+
+# Display information about the mysql server
+mysql --login-path=root -e "\s"
