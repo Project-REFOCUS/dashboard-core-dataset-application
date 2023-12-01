@@ -34,6 +34,8 @@ jobs:
         name: Install MySQL version 8
         with:
           mysql-version: '8.0'
+      - name: Some basic logging
+        run: echo "GITHUB_WORKSPACE=${{ github.workspace }}" && ls -al
       - name: Create base database schematics
         run: chmod +x ${{ github.workspace }}/e2e/createdb.sh && ${{ github.workspace }}/e2e/createdb.sh
       - name: Execute database changesets
