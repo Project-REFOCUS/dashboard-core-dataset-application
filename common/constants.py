@@ -46,7 +46,8 @@ class EntityKey:
     census_zipcode_population = 'census.zipcode_population'
     census_tract_population = 'census.tract_population'
     census_block_group_population = 'census.block_group_population'
-
+    census_tract_accent_update = 'census.tract_accent_update'
+    census_block_group_accent_update = 'census.block_group_accent_update'
 
 class CacheId:
     list_of_states = 'list_of_states'

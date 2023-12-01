@@ -30,6 +30,8 @@ from childcare.entity import ChildCareCenter
 from childcare.caretype import ChildCareType
 from wholesale.entity import WholesaleMarket
 from wholesale.application import MarketApplicationType
+from census.tract import CensusTractAccentUpdate
+from census.blockgroup import BlockGroupAccentUpdate
 
 
 entity_map = {
@@ -80,4 +82,6 @@ entity_map = {
     entity_key.census_zipcode_population: ZipcodePopulation,
     entity_key.census_tract_population: TractPopulation,
     entity_key.census_block_group_population: BlockGroupPopulation,
+    entity_key.census_tract_accent_update: CensusTractAccentUpdate,
+    entity_key.census_block_group_accent_update: BlockGroupAccentUpdate
 }
