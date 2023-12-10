@@ -51,3 +51,6 @@ jobs:
         run: docker build -t project-refocus-e2e-testing:new-env ${{ github.workspace }}/application
       - name: Execute End to end test
         run: docker run --name project-refocus-e2e-testing --network host --env MYSQL_HOST=localhost --env MYSQL_NAME=project_refocus --env MYSQL_USER=root --env MYSQL_PASS="" --env PYTHONUNBUFFERED=1 --env MYSQL_PORT=3306 project-refocus-e2e-testing:new-env
+    env:
+      application.main.performance.logging.level: DEBUG
+      application.main.logging.level: DEBUG
