@@ -5,8 +5,8 @@ from common.performance import PerformanceLogger
 
 import sys
 
-performance_logger = PerformanceLogger('APPLICATION_MAIN')
-logger = Logger('APPLICATION_MAIN')
+performance_logger = PerformanceLogger('application.main')
+logger = Logger('application.main')
 
 instantiated_entity_map = {}
 fetched_data_set = set()
