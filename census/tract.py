@@ -76,7 +76,7 @@ class CensusTract(ResourceEntity):
             county_fips = county['fips']
             if county_fips not in resolved_county_fips:
                 census_tract_url = f'{base_url}&within=050XX00US{county_fips}'
-                response_content = send_request('GET', census_tract_url, 5, 2, encoding='cp437')
+                response_content = send_request('GET', census_tract_url, 5, 2, encoding='utf-8')
 
                 self.records.extend(response_content['response']['geos']['items'])
                 resolved_county_fips.add(county_fips)
