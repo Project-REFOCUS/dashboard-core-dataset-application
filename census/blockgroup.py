@@ -4,7 +4,10 @@ from common.http import send_request
 from entity.abstract import ResourceEntity
 from census.abstract import CensusPopulationResourceEntity
 
+import threading
+
 FETCHED_RECORDS_THRESHOLD = 10000
+THREAD_POOL_LIMIT = 25
 
 
 def get_block_group_fips(record, field):
@@ -61,11 +64,9 @@ class BlockGroup(ResourceEntity):
                         self.record_cache[str(record[field])] = record
 
     def fetch(self):
-        base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900&id=7&showComponents=false'
         census_tract_cache = self.dependencies_map[entity_key.census_tract].record_cache
 
         self.records = []
-        records_fetched = 0
         for block_group_name in self.record_cache:
             cached_block_group = self.record_cache[block_group_name]
             census_tract_fips = cached_block_group['fips'][:-1]
@@ -74,20 +75,39 @@ class BlockGroup(ResourceEntity):
 
         census_tract_keys = list(census_tract_cache.keys())
         census_tract_index = 0
-        while records_fetched < FETCHED_RECORDS_THRESHOLD and census_tract_index < len(census_tract_keys):
+        threads_by_fips = {}
+        thread_shared_reference = {'records_fetched': 0}
+        while thread_shared_reference['records_fetched'] < FETCHED_RECORDS_THRESHOLD and census_tract_index < len(census_tract_keys):
             census_tract_key = census_tract_keys[census_tract_index]
             census_tract = census_tract_cache[census_tract_key]
             census_tract_fips = census_tract['fips']
             if census_tract_fips not in self.resolved_census_tract_fips:
-                block_group_url = f'{base_url}&within=1400000US{census_tract_fips}'
-                response_content = send_request('GET', block_group_url, 5, 2, encoding='utf-8')
 
-                self.records.extend(response_content['response']['geos']['items'])
-                records_fetched += 1
-                progress(records_fetched, FETCHED_RECORDS_THRESHOLD, 'Records fetched')
+                thread_args = (census_tract_fips, thread_shared_reference)
+                threads_by_fips[census_tract_fips] = threading.Thread(target=self.async_fetch, args=thread_args)
                 self.resolved_census_tract_fips.add(census_tract_fips)
+                threads_by_fips[census_tract_fips].start()
+
+                threads = threads_by_fips.values()
+                if len(threads_by_fips) >= THREAD_POOL_LIMIT:
+                    for thread in threads:
+                        thread.join()
+
+                    threads_by_fips = {}
 
             census_tract_index += 1
+
+        for thread in threads_by_fips.values():
+            thread.join()
+
+    def async_fetch(self, census_tract_fips, records_shared_reference):
+        base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900&id=7&showComponents=false'
+        block_group_url = f'{base_url}&within=1400000US{census_tract_fips}'
+        response_content = send_request('GET', block_group_url, 5, 2, encoding='utf-8')
+
+        self.records.extend(response_content['response']['geos']['items'])
+        records_shared_reference['records_fetched'] += 1
+        progress(records_shared_reference['records_fetched'], FETCHED_RECORDS_THRESHOLD, 'Records fetched')
 
     def after_save(self):
         self.load_cache()
