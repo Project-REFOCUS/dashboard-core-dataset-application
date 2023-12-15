@@ -1,9 +1,7 @@
 from common.constants import entity_key
+from common.http import send_request
 from entity.abstract import ResourceEntity
 from datetime import datetime, timedelta
-
-import requests
-import json
 
 
 def get_crash_timestamp(record, field):
@@ -64,7 +62,7 @@ class NYCMotorVehicleCollisions(ResourceEntity):
                     ending_date.isoformat(),
                     offset
                 )
-                records = json.loads(requests.request('GET', request_url).content.decode('utf-8'))
+                records = send_request('GET', request_url, 5, 2, encoding='utf-8')
                 continue_fetching = len(records) == 1000
                 self.records.extend(records)
                 offset += (1000 if continue_fetching else 0)

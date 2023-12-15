@@ -14,6 +14,8 @@ def send_request(method, url, retries, backoff, encoding='utf-8'):
         return content
     except requests.exceptions.ConnectionError:
         return send_request(method, url, retries - 1, backoff) if retries > 0 else None
+    except json.JSONDecodeError:
+        return None
 
 
 def get(url, retries=5, backoff=3):
