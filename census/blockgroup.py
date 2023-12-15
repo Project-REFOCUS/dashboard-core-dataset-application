@@ -24,7 +24,7 @@ class BlockGroup(ResourceEntity):
     @staticmethod
     def format_block_group(subject_block):
         return (
-            subject_block.replace(';', ',').replace('├▒', 'n').replace('├│', 'ó').replace('├¡', 'í').replace('├í', 'á').replace('├╝', 'ü')
+            subject_block.replace(';', ',').replace('├▒', 'ñ').replace('├│', 'ó').replace('├¡', 'í').replace('├í', 'á').replace('├╝', 'ü')
         ).lower()
 
     def get_census_tract_id(self, record, field):
@@ -126,7 +126,19 @@ class BlockGroupPopulation(CensusPopulationResourceEntity):
 
     def get_block_group_id(self, record, field):
         block_group_entity = self.dependencies_map[entity_key.census_block_group]
-        block_group = block_group_entity.get_cached_value(self.format_block_group(record[field]))
+        block_group_name = self.format_block_group(record[field])
+        block_group = block_group_entity.get_cached_value(block_group_name)
+        if not block_group:
+            block_group = block_group_entity.get_cached_value(record[field].lower())
+
+        if not block_group:
+            if ';' in block_group_name:
+                block_group_name = block_group_name.replace(';', ',')
+                block_group = block_group_entity.get_cached_value(block_group_name)
+            elif ',' in block_group_name:
+                block_group_name = block_group_name.replace(',', ';')
+                block_group = block_group_entity.get_cached_value(block_group_name)
+
         return block_group['id'] if block_group else None
 
     def __init__(self):
