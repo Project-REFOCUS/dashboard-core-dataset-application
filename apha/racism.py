@@ -1,13 +1,13 @@
 from census.constants import state_abbrev_map
 from common.constants import entity_key
 from common.utils import ensure_float, debug
+from common import http
 from datetime import datetime
 from entity.abstract import ResourceEntity
 
+import threading
 import requests
 import math
-import time
-import json
 import csv
 import io
 import re
@@ -22,6 +22,16 @@ FIELDNAMES = [
 ]
 MM_DD_YYYY_PATTERN = re.compile('\\d{1,2}/\\d{1,2}/\\d{4}')
 MM_DD_YY_PATTERN = re.compile('\\d{1,2}/\\d{1,2}/\\d{2}')
+
+
+def execute_threads(threads):
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    threads.clear()
 
 
 def should_start_processing(record):
@@ -44,27 +54,7 @@ class RacismDeclarations(ResourceEntity):
 
     @staticmethod
     def dependencies():
-        return [
-            entity_key.census_us_city,
-            entity_key.calendar_date
-        ]
-
-    def get_address_and_by_coordinates(self, latitude, longitude, retry=False):
-
-        if retry:
-            time.sleep(1)
-
-        if self.last_api_call_time is None or diff(time.perf_counter(), self.last_api_call_time) > 1:
-            request = requests.request('GET', NOMINATIM_API_URL.format(latitude, longitude))
-            if request.status_code == 200:
-                null_response = {'city': 'N/A', 'county': 'N/A', 'state': 'N/A'}
-                response = json.loads(request.content.decode('utf-8'))
-                self.last_api_call_time = time.perf_counter()
-                return response['address'] if 'address' in response else null_response
-            else:
-                return self.get_address_and_by_coordinates(latitude, longitude, retry=True)
-        else:
-            return self.get_address_and_by_coordinates(latitude, longitude, retry=True)
+        return [entity_key.census_us_city, entity_key.calendar_date]
 
     def get_calendar_date_id(self, record, field):
         calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
@@ -79,7 +69,7 @@ class RacismDeclarations(ResourceEntity):
 
     def get_city_id(self, record, field):
         city_entity = self.dependencies_map[entity_key.census_us_city]
-        address = self.get_address_and_by_coordinates(record['Latitude'], record['Longitude'])
+        address = record['address']
         if field not in address and 'town' not in address:
             return None
 
@@ -125,8 +115,20 @@ class RacismDeclarations(ResourceEntity):
 
         start_processing = False
 
+        thread_max_limit = 25
+        threads = []
         for record in raw_data:
             if not start_processing:
                 start_processing = should_start_processing(record)
             else:
-                self.records.append(record)
+                threads.append(threading.Thread(target=self.async_fetch, args=(record,)))
+                if len(threads) >= thread_max_limit:
+                    execute_threads(threads)
+
+        execute_threads(threads)
+
+    def async_fetch(self, record):
+        response = http.get(NOMINATIM_API_URL.format(record['Latitude'], record['Longitude']))
+        null_response = {'city': 'N/A', 'county': 'N/A', 'state': 'N/A'}
+        record['address'] = response['address'] if 'address' in response else null_response
+        self.records.append(record)
