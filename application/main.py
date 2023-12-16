@@ -59,7 +59,6 @@ def execute(entities):
 if __name__ == '__main__':
     root_entities = [
         entity_key.census_us_metro_area,
-        entity_key.census_us_city,
         entity_key.census_us_city_zipcode,
         entity_key.snap_nyc_data,
         entity_key.mvc_nyc_crashes,

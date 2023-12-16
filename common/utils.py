@@ -86,3 +86,13 @@ def debug(message):
 
 def start_of_day(daytime):
     return daytime - timedelta(hours=daytime.hour, minutes=daytime.minute, seconds=daytime.second, microseconds=daytime.microsecond)
+
+
+def execute_threads(threads):
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    threads.clear()

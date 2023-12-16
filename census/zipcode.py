@@ -4,6 +4,7 @@ from entity.abstract import ResourceEntity
 from common.constants import entity_key
 from census.abstract import CensusPopulationResourceEntity
 
+import threading
 import requests
 import json
 
@@ -58,7 +59,7 @@ class USCityZipCodes(ResourceEntity):
 
     @staticmethod
     def dependencies():
-        return [constants.entity_key.census_us_zipcode, constants.entity_key.census_us_city]
+        return [constants.entity_key.census_us_zipcode, constants.entity_key.census_us_county_city]
 
     @staticmethod
     def create_cache_key(city_id, zipcode_name):
@@ -110,8 +111,6 @@ class USCityZipCodes(ResourceEntity):
             response_content = json.loads(requests.request('GET', url).content)
             self.list_of_states = response_content['response']['geos']['items']
 
-        zipcode_base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900' + \
-                           '&id=9&showComponents=false&within=160XX00US'
         zipcode_city_set = set()
 
         self.records = []
@@ -137,21 +136,48 @@ class USCityZipCodes(ResourceEntity):
                 + ' and county.id=county_cities.county_id and city.id=county_cities.city_id'
 
         cities = self.mysql_client.select(table_name=table, fields=fields, where=where)
-
+        shared_reference = {'zipcode_city_set': zipcode_city_set}
+        thread_max_pool = 25
+        threads = []
         for city in cities:
-            city_fips = city['fips']
-            response_content = http.get(f'{zipcode_base_url}{state_code}{city_fips}')
-            zipcode_list = response_content['response']['geos']['items']
+            args = (state_code, city, shared_reference)
+            threads.append(threading.Thread(target=self.async_fetch, args=args))
 
-            for zipcode in zipcode_list:
-                if 'collection' in zipcode:
-                    continue
+            if len(threads) >= thread_max_pool:
+                utils.execute_threads(threads)
 
-                zipcode_name = zipcode['name'].replace('ZCTA5 ', '').strip()
-                set_key = USCityZipCodes.create_cache_key(city['id'], zipcode_name)
-                if set_key not in zipcode_city_set:
-                    self.records.append({'name': zipcode_name, 'city_id': city['id']})
-                    zipcode_city_set.add(set_key)
+        utils.execute_threads(threads)
+        # city_fips = city['fips']
+        # response_content = http.get(f'{zipcode_base_url}{state_code}{city_fips}')
+        # zipcode_list = response_content['response']['geos']['items']
+
+        # for zipcode in zipcode_list:
+        #     if 'collection' in zipcode:
+        #         continue
+
+        # zipcode_name = zipcode['name'].replace('ZCTA5 ', '').strip()
+        # set_key = USCityZipCodes.create_cache_key(city['id'], zipcode_name)
+        # if set_key not in zipcode_city_set:
+        #     self.records.append({'name': zipcode_name, 'city_id': city['id']})
+        #     zipcode_city_set.add(set_key)
+
+    def async_fetch(self, state_code, city, shared_reference):
+        city_fips = city['fips']
+        zipcode_base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900' + \
+            '&id=9&showComponents=false&within=160XX00US'
+        response_content = http.get(f'{zipcode_base_url}{state_code}{city_fips}')
+        zipcode_list = response_content['response']['geos']['items']
+
+        for zipcode in zipcode_list:
+            if 'collection' in zipcode:
+                continue
+
+            zipcode_name = zipcode['name'].replace('ZCTA5 ', '').strip()
+            set_key = USCityZipCodes.create_cache_key(city['id'], zipcode_name)
+            if set_key not in shared_reference['zipcode_city_set']:
+                self.records.append({'name': zipcode_name, 'city_id': city['id']})
+                shared_reference['zipcode_city_set'].add(set_key)
+
 
     def has_data(self):
         return len(self.list_of_states) > len(self.states_consumed)
@@ -166,9 +192,7 @@ class ZipcodePopulation(CensusPopulationResourceEntity):
 
     @staticmethod
     def dependencies():
-        return[
-            entity_key.census_us_zipcode,
-        ]
+        return [entity_key.census_us_zipcode]
 
     def get_zipcode_id(self, record, field):
         zipcode_value = record[field].split()[1]
