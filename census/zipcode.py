@@ -141,25 +141,12 @@ class USCityZipCodes(ResourceEntity):
         threads = []
         for city in cities:
             args = (state_code, city, shared_reference)
-            threads.append(threading.Thread(target=self.async_fetch, args=args))
+            threads.append(threading.Thread(target=self.async_fetch, args=args, name=city['name']))
 
             if len(threads) >= thread_max_pool:
                 utils.execute_threads(threads)
 
         utils.execute_threads(threads)
-        # city_fips = city['fips']
-        # response_content = http.get(f'{zipcode_base_url}{state_code}{city_fips}')
-        # zipcode_list = response_content['response']['geos']['items']
-
-        # for zipcode in zipcode_list:
-        #     if 'collection' in zipcode:
-        #         continue
-
-        # zipcode_name = zipcode['name'].replace('ZCTA5 ', '').strip()
-        # set_key = USCityZipCodes.create_cache_key(city['id'], zipcode_name)
-        # if set_key not in zipcode_city_set:
-        #     self.records.append({'name': zipcode_name, 'city_id': city['id']})
-        #     zipcode_city_set.add(set_key)
 
     def async_fetch(self, state_code, city, shared_reference):
         city_fips = city['fips']

@@ -84,7 +84,8 @@ class BlockGroup(ResourceEntity):
             if census_tract_fips not in self.resolved_census_tract_fips:
 
                 thread_args = (census_tract_fips, thread_shared_reference)
-                threads_by_fips[census_tract_fips] = threading.Thread(target=self.async_fetch, args=thread_args)
+                n = census_tract_fips
+                threads_by_fips[census_tract_fips] = threading.Thread(target=self.async_fetch, args=thread_args, name=n)
                 self.resolved_census_tract_fips.add(census_tract_fips)
                 threads_by_fips[census_tract_fips].start()
 

@@ -46,8 +46,8 @@ class EmploymentStatus(ResourceEntity):
             while len(batch_records) < batch_size and census_tract_index < census_tracts_count:
                 batch_records.append(census_tracts[census_tract_index])
                 census_tract_index += 1
-
-            threads.append(threading.Thread(target=self.async_fetch, args=(batch_records,)))
+            thread_name = str(batch_records)
+            threads.append(threading.Thread(target=self.async_fetch, args=(batch_records,), name=thread_name))
             if len(threads) >= THREAD_POOL_LIMIT:
                 execute_threads(threads)
 

@@ -121,7 +121,8 @@ class RacismDeclarations(ResourceEntity):
             if not start_processing:
                 start_processing = should_start_processing(record)
             else:
-                threads.append(threading.Thread(target=self.async_fetch, args=(record,)))
+                thread_name = record.get('city')
+                threads.append(threading.Thread(target=self.async_fetch, args=(record,), name=thread_name))
                 if len(threads) >= thread_max_limit:
                     execute_threads(threads)
 
