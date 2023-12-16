@@ -18,5 +18,5 @@ def send_request(method, url, retries, backoff, encoding='utf-8'):
         return None
 
 
-def get(url, retries=5, backoff=3):
-    return send_request('GET', url, retries=retries, backoff=backoff)
+def get(url, retries=5, backoff=3, encoding='utf-8'):
+    return send_request('GET', url, retries=retries, backoff=backoff, encoding=encoding)

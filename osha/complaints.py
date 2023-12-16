@@ -10,7 +10,7 @@ URL = 'https://www.osha.gov/sites/default/files/' + \
       'Closed_Federal_State_Plan_Valid_COVID-19_New_Complaints_0430_through_0715_2022.xlsx'
 
 HEADERS = {
-    'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
 }
 
 COLUMN_CODES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
