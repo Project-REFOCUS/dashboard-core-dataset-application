@@ -1,5 +1,6 @@
 from common.constants import entity_key
 from common.utils import progress
+from common.http import send_request
 from entity.abstract import ResourceEntity
 from census.abstract import CensusPopulationResourceEntity
 
@@ -20,7 +21,7 @@ class CensusTract(ResourceEntity):
     
     @staticmethod
     def format_census_tract(subject_tract):
-        return subject_tract.replace(';',',').replace('├▒','n').replace('├│','ó').replace('├¡','í').replace('├í','á').replace('├╝','ü').lower()
+        return subject_tract.replace(';', ',').replace('├▒', 'ñ').replace('├│', 'ó').replace('├¡', 'í').replace('├í', 'á').replace('├╝', 'ü').lower()
 
     def get_county_id(self, record, field):
         county_entity = self.dependencies_map[entity_key.census_us_county]
@@ -75,8 +76,7 @@ class CensusTract(ResourceEntity):
             county_fips = county['fips']
             if county_fips not in resolved_county_fips:
                 census_tract_url = f'{base_url}&within=050XX00US{county_fips}'
-                response = requests.request('GET', census_tract_url)
-                response_content = json.loads(response.content.decode('cp437'))
+                response_content = send_request('GET', census_tract_url, 5, 2, encoding='utf-8')
 
                 self.records.extend(response_content['response']['geos']['items'])
                 resolved_county_fips.add(county_fips)
@@ -89,17 +89,27 @@ class TractPopulation(CensusPopulationResourceEntity):
 
     @staticmethod
     def dependencies():
-        return[
-            entity_key.census_tract
-        ]
+        return [entity_key.census_tract]
 
     @staticmethod
     def format_census_tract(subject_tract):
-        return subject_tract.replace('ñ','n').lower()
+        return subject_tract.replace('ñ', 'n').lower()
 
     def get_tract_id(self, record, field):
         tract_entity = self.dependencies_map[entity_key.census_tract]
-        tract = tract_entity.get_cached_value(self.format_census_tract(record[field]))
+        census_tract_name = self.format_census_tract(record[field])
+        tract = tract_entity.get_cached_value(census_tract_name)
+        if not tract:
+            tract = tract_entity.get_cached_value(record[field].lower())
+
+        if not tract:
+            if ';' in census_tract_name:
+                census_tract_name = census_tract_name.replace(';', ',')
+                tract = tract_entity.get_cached_value(census_tract_name)
+            elif ',' in census_tract_name:
+                census_tract_name = census_tract_name.replace(',', ';')
+                tract = tract_entity.get_cached_value(census_tract_name)
+
         return tract['id'] if tract else None
     
     def __init__(self):

@@ -1,0 +1,53 @@
+# This workflow deploys and end-to-end test for simulating runs on both new environments and existing environments
+name: e2e-testing
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  e2e-new-env:
+    runs-on: ubuntu-latest
+    name: End-To-End testing for New Environments
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          repository: Project-REFOCUS/mysql-changeset-schematics
+          ref: refs/heads/main
+          path: mysql-changeset-schematics
+        name: Checkout repository mysql-changeset-schematics repo
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          path: application
+      - uses: keithweaver/aws-s3-github-action@v1.0.0
+        with:
+          command: cp
+          source: s3://project-refocus-shellscripts/dbcc.sh
+          destination: ./dbcc.sh
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+        name: Download database changeset scripts from S3
+      - uses: shogo82148/actions-setup-mysql@v1
+        name: Install MySQL version 8
+        with:
+          mysql-version: '8.0'
+      - name: Some basic logging
+        run: echo "GITHUB_WORKSPACE=${{ github.workspace }}" && ls -al
+      - name: Create base database schematics
+        run: chmod +x ${{ github.workspace }}/application/e2e/createdb.sh && ${{ github.workspace }}/application/e2e/createdb.sh
+      - name: Execute database changesets
+        env:
+          APP_DB: project_refocus
+          CHANGES_FILE: changes.txt
+          CHANGES_HOME: ${{ github.workspace }}/mysql-changeset-schematics
+          CHANGES_TABLE: project_refocus
+          CHANGES_ENV: new_environment
+          LOGIN_PATH: root
+        run: bash ./dbcc.sh
+      - name: Build Docker image
+        run: docker build -t project-refocus-e2e-testing:new-env ${{ github.workspace }}/application
+      - name: Execute End to end test
+        run: docker run --name project-refocus-e2e-testing --network host --env-file ${{ github.workspace }}/application/e2e/.env project-refocus-e2e-testing:new-env

@@ -1,8 +1,7 @@
 from common.constants import entity_key
+from common.http import send_request
 from entity.abstract import ResourceEntity
 
-import requests
-import json
 
 BASE_URL = 'https://data.cdc.gov/api/id/2ew6-ywp6.json?$select=`county_names`,`county_fips`,`population_served`,`date_start`,`date_end`,`ptc_15d`,`detect_prop_15d`,`percentile`&$order=`detect_prop_15d`+ASC&$limit=25000&$offset={}'
 
@@ -77,8 +76,8 @@ class WasteWater(ResourceEntity):
         self.records = []
         self.updates = []
 
-        response_content = json.loads(requests.request('GET', BASE_URL.format(offset)).content)
+        response_content = send_request('GET', BASE_URL.format(offset), 5, 2)
         while len(response_content) > 0:
             offset += len(response_content)
             self.records.extend(response_content)
-            response_content = json.loads(requests.request('GET', BASE_URL.format(offset)).content)
+            response_content = send_request('GET', BASE_URL.format(offset), 5, 2)

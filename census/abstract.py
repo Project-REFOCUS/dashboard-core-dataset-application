@@ -3,6 +3,7 @@ from entity.abstract import ResourceEntity
 import requests
 import json
 
+
 class CensusPopulationResourceEntity(ResourceEntity):
     
     def fetch_resource(self, api_path, name):
