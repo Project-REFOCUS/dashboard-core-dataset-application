@@ -51,3 +51,15 @@ jobs:
         run: docker build -t project-refocus-e2e-testing:new-env ${{ github.workspace }}/application
       - name: Execute End to end test
         run: docker run --name project-refocus-e2e-testing --network host --env-file ${{ github.workspace }}/application/e2e/.env project-refocus-e2e-testing:new-env
+      - name: Dump MySQL data
+        run: mysqldump project_refocus >> project_refocus.sql
+      - name: Upload MySQL datadump to S3
+        uses: keithweaver/aws-s3-github-action@v1.0.0
+        with:
+          command: cp
+          source: ./project_refocus.sql
+          destination: s3://mysql-e2e-snapshots/project_refocus_dc_dataset_app_${{ github.run_number }}.sql
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+
