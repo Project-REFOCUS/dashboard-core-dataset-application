@@ -1,6 +1,6 @@
 from census.constants import state_abbrev_map
 from common.constants import entity_key
-from common.utils import ensure_float, debug
+from common.utils import ensure_float, debug, execute_threads
 from common import http
 from datetime import datetime
 from entity.abstract import ResourceEntity
@@ -22,16 +22,6 @@ FIELDNAMES = [
 ]
 MM_DD_YYYY_PATTERN = re.compile('\\d{1,2}/\\d{1,2}/\\d{4}')
 MM_DD_YY_PATTERN = re.compile('\\d{1,2}/\\d{1,2}/\\d{2}')
-
-
-def execute_threads(threads):
-    for thread in threads:
-        thread.start()
-
-    for thread in threads:
-        thread.join()
-
-    threads.clear()
 
 
 def should_start_processing(record):

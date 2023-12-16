@@ -141,7 +141,7 @@ class USCityZipCodes(ResourceEntity):
         threads = []
         for city in cities:
             args = (state_code, city, shared_reference)
-            threads.append(threading.Thread(target=self.async_fetch, args=args, name=city['name']))
+            threads.append(threading.Thread(target=self.async_fetch, args=args, name=city['fips']))
 
             if len(threads) >= thread_max_pool:
                 utils.execute_threads(threads)
