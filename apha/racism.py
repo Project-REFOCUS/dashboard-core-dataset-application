@@ -119,7 +119,8 @@ class RacismDeclarations(ResourceEntity):
         execute_threads(threads)
 
     def async_fetch(self, record):
-        response = http.get(NOMINATIM_API_URL.format(record['Latitude'], record['Longitude']))
+        url = NOMINATIM_API_URL.format(record['Latitude'], record['Longitude'])
+        response = http.get(url, retries=3, backoff=2)
         null_response = {'city': 'N/A', 'county': 'N/A', 'state': 'N/A'}
         record['address'] = response['address'] if 'address' in response else null_response
         self.records.append(record)
