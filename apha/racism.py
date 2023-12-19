@@ -130,12 +130,13 @@ class RacismDeclarations(ResourceEntity):
         execute_threads(threads)
 
     def async_fetch(self, record, shared_reference):
-        if shared_reference and shared_reference['backoff']:
+        if shared_reference['backoff']:
             time.sleep(5)
+            self.async_fetch(record, shared_reference)
 
         url = NOMINATIM_API_URL.format(record['Latitude'], record['Longitude'])
         response = requests.request('GET', url)
-        if response.status_code == 429 and not shared_reference['backoff']:
+        if response.status_code == 429:
             shared_reference['backoff'] = True
             logger.warning(f'{threading.current_thread().name} has encountered a 429. Backing off for 5 seconds')
             threading.Thread(target=launch_backoff_toggle_thread, args=(shared_reference,)).start()
