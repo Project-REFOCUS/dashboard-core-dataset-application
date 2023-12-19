@@ -155,8 +155,9 @@ class USCityZipCodes(ResourceEntity):
         city_fips = city['fips']
         zipcode_base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900' + \
             '&id=9&showComponents=false&within=160XX00US'
-        response_timer = performance_logger.start(zipcode_base_url)
-        response_content = http.get(f'{zipcode_base_url}{state_code}{city_fips}')
+        url = f'{zipcode_base_url}{state_code}{city_fips}'
+        response_timer = performance_logger.start(url)
+        response_content = http.get(url)
         response_timer.stop()
         zipcode_list = response_content['response']['geos']['items']
 
