@@ -1,16 +1,20 @@
 from census.constants import state_abbrev_map
 from common.constants import entity_key
-from common.utils import ensure_float, debug
+from common.utils import ensure_float, debug, execute_threads
+from common.logger import Logger
 from datetime import datetime
 from entity.abstract import ResourceEntity
 
+import threading
 import requests
-import math
 import time
+import math
 import json
 import csv
 import io
 import re
+
+logger = Logger(__name__)
 
 NOMINATIM_API_URL = 'https://nominatim.openstreetmap.org/reverse?format=json&lat={}&lon={}'
 URL = 'https://docs.google.com/spreadsheets/d/e' + \
@@ -40,31 +44,16 @@ def diff(value1, value2):
     return math.ceil(value1) - math.ceil(value2)
 
 
+def launch_backoff_toggle_thread(shared_reference):
+    time.sleep(5)
+    shared_reference['backoff'] = False
+
+
 class RacismDeclarations(ResourceEntity):
 
     @staticmethod
     def dependencies():
-        return [
-            entity_key.census_us_city,
-            entity_key.calendar_date
-        ]
-
-    def get_address_and_by_coordinates(self, latitude, longitude, retry=False):
-
-        if retry:
-            time.sleep(1)
-
-        if self.last_api_call_time is None or diff(time.perf_counter(), self.last_api_call_time) > 1:
-            request = requests.request('GET', NOMINATIM_API_URL.format(latitude, longitude))
-            if request.status_code == 200:
-                null_response = {'city': 'N/A', 'county': 'N/A', 'state': 'N/A'}
-                response = json.loads(request.content.decode('utf-8'))
-                self.last_api_call_time = time.perf_counter()
-                return response['address'] if 'address' in response else null_response
-            else:
-                return self.get_address_and_by_coordinates(latitude, longitude, retry=True)
-        else:
-            return self.get_address_and_by_coordinates(latitude, longitude, retry=True)
+        return [entity_key.census_us_city, entity_key.calendar_date]
 
     def get_calendar_date_id(self, record, field):
         calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
@@ -79,7 +68,7 @@ class RacismDeclarations(ResourceEntity):
 
     def get_city_id(self, record, field):
         city_entity = self.dependencies_map[entity_key.census_us_city]
-        address = self.get_address_and_by_coordinates(record['Latitude'], record['Longitude'])
+        address = record['address']
         if field not in address and 'town' not in address:
             return None
 
@@ -125,8 +114,35 @@ class RacismDeclarations(ResourceEntity):
 
         start_processing = False
 
+        thread_max_limit = 15
+        shared_reference = {'backoff': False}
+        threads = []
         for record in raw_data:
             if not start_processing:
                 start_processing = should_start_processing(record)
             else:
-                self.records.append(record)
+                thread_name = record.get('Entity')
+                args = (record, shared_reference)
+                threads.append(threading.Thread(target=self.async_fetch, args=args, name=thread_name))
+                if len(threads) >= thread_max_limit:
+                    execute_threads(threads)
+
+        execute_threads(threads)
+
+    def async_fetch(self, record, shared_reference):
+        if shared_reference['backoff']:
+            time.sleep(5)
+            self.async_fetch(record, shared_reference)
+
+        url = NOMINATIM_API_URL.format(record['Latitude'], record['Longitude'])
+        response = requests.request('GET', url)
+        if response.status_code == 429:
+            shared_reference['backoff'] = True
+            logger.warning(f'{threading.current_thread().name} has encountered a 429. Backing off for 5 seconds')
+            threading.Thread(target=launch_backoff_toggle_thread, args=(shared_reference,)).start()
+            self.async_fetch(record, shared_reference)
+        else:
+            content = json.loads(response.content.decode('utf-8'))
+            null_response = {'city': 'N/A', 'county': 'N/A', 'state': 'N/A'}
+            record['address'] = content['address'] if 'address' in content else null_response
+            self.records.append(record)

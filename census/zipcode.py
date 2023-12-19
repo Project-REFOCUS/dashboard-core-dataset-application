@@ -3,10 +3,13 @@ from common import constants, http, utils
 from entity.abstract import ResourceEntity
 from common.constants import entity_key
 from census.abstract import CensusPopulationResourceEntity
+from common.performance import PerformanceLogger
 
 import threading
 import requests
 import json
+
+performance_logger = PerformanceLogger(__name__)
 
 zipcode_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900' + \
               '&id=9&showComponents=false&within='
@@ -141,31 +144,21 @@ class USCityZipCodes(ResourceEntity):
         threads = []
         for city in cities:
             args = (state_code, city, shared_reference)
-            threads.append(threading.Thread(target=self.async_fetch, args=args))
+            threads.append(threading.Thread(target=self.async_fetch, args=args, name=city['fips']))
 
             if len(threads) >= thread_max_pool:
                 utils.execute_threads(threads)
 
         utils.execute_threads(threads)
-        # city_fips = city['fips']
-        # response_content = http.get(f'{zipcode_base_url}{state_code}{city_fips}')
-        # zipcode_list = response_content['response']['geos']['items']
-
-        # for zipcode in zipcode_list:
-        #     if 'collection' in zipcode:
-        #         continue
-
-        # zipcode_name = zipcode['name'].replace('ZCTA5 ', '').strip()
-        # set_key = USCityZipCodes.create_cache_key(city['id'], zipcode_name)
-        # if set_key not in zipcode_city_set:
-        #     self.records.append({'name': zipcode_name, 'city_id': city['id']})
-        #     zipcode_city_set.add(set_key)
 
     def async_fetch(self, state_code, city, shared_reference):
         city_fips = city['fips']
         zipcode_base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900' + \
             '&id=9&showComponents=false&within=160XX00US'
-        response_content = http.get(f'{zipcode_base_url}{state_code}{city_fips}')
+        url = f'{zipcode_base_url}{state_code}{city_fips}'
+        response_timer = performance_logger.start(url)
+        response_content = http.get(url)
+        response_timer.stop()
         zipcode_list = response_content['response']['geos']['items']
 
         for zipcode in zipcode_list:
@@ -177,7 +170,6 @@ class USCityZipCodes(ResourceEntity):
             if set_key not in shared_reference['zipcode_city_set']:
                 self.records.append({'name': zipcode_name, 'city_id': city['id']})
                 shared_reference['zipcode_city_set'].add(set_key)
-
 
     def has_data(self):
         return len(self.list_of_states) > len(self.states_consumed)
