@@ -1,16 +1,20 @@
 from census.constants import state_abbrev_map
 from common.constants import entity_key
 from common.utils import ensure_float, debug, execute_threads
-from common import http
+from common.logger import Logger
 from datetime import datetime
 from entity.abstract import ResourceEntity
 
 import threading
 import requests
+import time
 import math
+import json
 import csv
 import io
 import re
+
+logger = Logger(__name__)
 
 NOMINATIM_API_URL = 'https://nominatim.openstreetmap.org/reverse?format=json&lat={}&lon={}'
 URL = 'https://docs.google.com/spreadsheets/d/e' + \
@@ -38,6 +42,11 @@ def get_coordinate_value(record, field):
 
 def diff(value1, value2):
     return math.ceil(value1) - math.ceil(value2)
+
+
+def launch_backoff_toggle_thread(shared_reference):
+    time.sleep(5)
+    shared_reference['backoff'] = False
 
 
 class RacismDeclarations(ResourceEntity):
@@ -105,22 +114,34 @@ class RacismDeclarations(ResourceEntity):
 
         start_processing = False
 
-        thread_max_limit = 25
+        thread_max_limit = 15
+        shared_reference = {}
         threads = []
         for record in raw_data:
             if not start_processing:
                 start_processing = should_start_processing(record)
             else:
-                thread_name = record.get('city')
-                threads.append(threading.Thread(target=self.async_fetch, args=(record,), name=thread_name))
+                thread_name = record.get('Entity')
+                args = (record, shared_reference)
+                threads.append(threading.Thread(target=self.async_fetch, args=args, name=thread_name))
                 if len(threads) >= thread_max_limit:
                     execute_threads(threads)
 
         execute_threads(threads)
 
-    def async_fetch(self, record):
+    def async_fetch(self, record, shared_reference):
+        if shared_reference and shared_reference['backoff']:
+            time.sleep(5)
+
         url = NOMINATIM_API_URL.format(record['Latitude'], record['Longitude'])
-        response = http.get(url, retries=3, backoff=2)
-        null_response = {'city': 'N/A', 'county': 'N/A', 'state': 'N/A'}
-        record['address'] = response['address'] if 'address' in response else null_response
-        self.records.append(record)
+        response = requests.request('GET', url)
+        if response.status_code == 429 and not shared_reference['backoff']:
+            shared_reference['backoff'] = True
+            logger.warning(f'{threading.current_thread().name} has encountered a 429. Backing off for 5 seconds')
+            threading.Thread(target=launch_backoff_toggle_thread, args=(shared_reference,)).start()
+            self.async_fetch(record, shared_reference)
+        else:
+            content = json.loads(response.content.decode('utf-8'))
+            null_response = {'city': 'N/A', 'county': 'N/A', 'state': 'N/A'}
+            record['address'] = content['address'] if 'address' in content else null_response
+            self.records.append(record)
