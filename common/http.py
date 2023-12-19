@@ -10,6 +10,9 @@ logger = Logger(__name__)
 def send_request(method, url, retries, backoff, encoding='utf-8'):
     try:
         response = requests.request(method=method, url=url)
+        if response.status_code == 204:
+            return {'status': response.status_code, 'message': response.text}
+
         if response.status_code != 200:
             logger.debug(f'Received status code [{response.status_code}] for url {url}.')
             if retries > 0:

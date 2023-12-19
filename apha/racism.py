@@ -115,7 +115,7 @@ class RacismDeclarations(ResourceEntity):
         start_processing = False
 
         thread_max_limit = 15
-        shared_reference = {}
+        shared_reference = {'backoff': False}
         threads = []
         for record in raw_data:
             if not start_processing:
