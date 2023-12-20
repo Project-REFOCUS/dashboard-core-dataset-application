@@ -38,6 +38,7 @@ class WasteWater(ResourceEntity):
             {'field': 'ptc_15d', 'column': 'percentile_change_over_15_days', 'data': get_int_value_or_none},
             {'field': 'detect_prop_15d', 'column': 'detected_proportion_over_15_days', 'data': get_int_value_or_none}
         ]
+        self.offset = 0
 
     def load_cache(self):
         records = self.mysql_client.select(self.table_name)
@@ -71,13 +72,14 @@ class WasteWater(ResourceEntity):
         return county is None or self.get_cached_value(f'{county_id}.{calendar_date_id}') is not None
 
     def fetch(self):
-        offset = 0
-
         self.records = []
         self.updates = []
 
-        response_content = send_request('GET', BASE_URL.format(offset), 5, 2)
-        while len(response_content) > 0:
-            offset += len(response_content)
-            self.records.extend(response_content)
-            response_content = send_request('GET', BASE_URL.format(offset), 5, 2)
+        response_content = send_request('GET', BASE_URL.format(self.offset), 5, 2)
+        self.records.extend(response_content)
+
+    def after_save(self):
+        self.offset += len(self.records)
+        self.records = []
+        response_content = send_request('GET', BASE_URL.format(self.offset), 5, 2)
+        self.records.extend(response_content)
