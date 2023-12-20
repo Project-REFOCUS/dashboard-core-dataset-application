@@ -1,11 +1,10 @@
 from common.constants import entity_key
-from common.utils import progress
+from common.utils import progress, execute_threads
 from common.http import send_request
 from entity.abstract import ResourceEntity
 from census.abstract import CensusPopulationResourceEntity
 
-import requests
-import json
+import threading
 
 
 def get_census_tract_fips(record, field):
@@ -13,15 +12,15 @@ def get_census_tract_fips(record, field):
     return fips_code
 
 
+def format_census_tract_name(record, field):
+    return record[field].replace(',', ';')
+
+
 class CensusTract(ResourceEntity):
 
     @staticmethod
     def dependencies():
         return [entity_key.census_us_county]
-    
-    @staticmethod
-    def format_census_tract(subject_tract):
-        return subject_tract.replace(';', ',').replace('├▒', 'ñ').replace('├│', 'ó').replace('├¡', 'í').replace('├í', 'á').replace('├╝', 'ü').lower()
 
     def get_county_id(self, record, field):
         county_entity = self.dependencies_map[entity_key.census_us_county]
@@ -33,17 +32,28 @@ class CensusTract(ResourceEntity):
         self.table_name = 'census_tract'
 
         self.fields = [
-            {'field': 'name'},
+            {'field': 'name', 'column': 'name', 'data': format_census_tract_name},
             {'field': 'code', 'column': 'fips', 'data': get_census_tract_fips},
             {'field': 'code', 'column': 'county_id', 'data': self.get_county_id}
         ]
 
-        self.cacheable_fields = ['fips','name','id']
+        self.cacheable_fields = ['fips', 'name', 'id']
 
     def skip_record(self, record):
-        return 'code' in record and '$' in record['code'] \
-            or 'fips' in record and record['fips'] in self.record_cache
-    
+        return 'code' in record and (
+            '$' in record['code'] or get_census_tract_fips(record, 'code') in self.record_cache
+        )
+
+    def update_record(self, record):
+        census_tract = self.get_cached_value(get_census_tract_fips(record, 'code'))
+        return census_tract and census_tract['name'] != format_census_tract_name(record, 'name')
+
+    def create_update_record(self, record):
+        census_tract = self.record_cache[get_census_tract_fips(record, 'code')]
+        record_id = census_tract['id']
+        record_name = format_census_tract_name(record, 'name')
+        return {'fields': ['name'], 'values': [record_name], 'clause': f'id = {record_id}'}
+
     def load_cache(self):
         if self.record_cache is None:
             self.record_cache = {}
@@ -53,36 +63,42 @@ class CensusTract(ResourceEntity):
             for record in records:
                 for field in self.cacheable_fields:
                     if field == 'name':
-                        self.record_cache[self.format_census_tract(str(record[field]))] = record
+                        self.record_cache[format_census_tract_name(record, field)] = record
                     else:
                         self.record_cache[str(record[field])] = record
 
-    def fetch(self):
+    def async_fetch(self, county_fips, shared_reference):
         base_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=99900&id=6&showComponents=false'
+        census_tract_url = f'{base_url}&within=050XX00US{county_fips}'
+        response_content = send_request('GET', census_tract_url, 5, 2, encoding='utf-8')
+
+        self.records.extend(response_content['response']['geos']['items'])
+        shared_reference['records_fetched'] += 1
+        progress(shared_reference['records_fetched'], shared_reference['record_count'], 'Records Fetched')
+
+    def fetch(self):
         county_cache = self.dependencies_map[entity_key.census_us_county].record_cache
         resolved_county_fips = set()
 
         self.records = []
+        self.updates = []
         record_count = len(county_cache)
-        records_fetched = 0
-        for tract_name in self.record_cache:
-            cached_tract = self.record_cache[tract_name]
-            county_fips = cached_tract['fips'][0:5]
-            if county_fips in county_cache:
-                resolved_county_fips.add(county_fips)
 
+        shared_reference = {'records_fetched': 0, 'record_count': record_count}
+        thread_pool_limit = 25
+        threads = []
         for county_key in county_cache:
             county = county_cache[county_key]
             county_fips = county['fips']
             if county_fips not in resolved_county_fips:
-                census_tract_url = f'{base_url}&within=050XX00US{county_fips}'
-                response_content = send_request('GET', census_tract_url, 5, 2, encoding='utf-8')
-
-                self.records.extend(response_content['response']['geos']['items'])
+                args = (county_fips, shared_reference)
+                threads.append(threading.Thread(target=self.async_fetch, args=args, name=county_fips))
                 resolved_county_fips.add(county_fips)
 
-            records_fetched += 1
-            progress(records_fetched, record_count, 'Records fetched')
+                if len(threads) >= thread_pool_limit:
+                    execute_threads(threads)
+
+        execute_threads(threads)
 
 
 class TractPopulation(CensusPopulationResourceEntity):
@@ -91,24 +107,9 @@ class TractPopulation(CensusPopulationResourceEntity):
     def dependencies():
         return [entity_key.census_tract]
 
-    @staticmethod
-    def format_census_tract(subject_tract):
-        return subject_tract.replace('ñ', 'n').lower()
-
     def get_tract_id(self, record, field):
         tract_entity = self.dependencies_map[entity_key.census_tract]
-        census_tract_name = self.format_census_tract(record[field])
-        tract = tract_entity.get_cached_value(census_tract_name)
-        if not tract:
-            tract = tract_entity.get_cached_value(record[field].lower())
-
-        if not tract:
-            if ';' in census_tract_name:
-                census_tract_name = census_tract_name.replace(';', ',')
-                tract = tract_entity.get_cached_value(census_tract_name)
-            elif ',' in census_tract_name:
-                census_tract_name = census_tract_name.replace(',', ';')
-                tract = tract_entity.get_cached_value(census_tract_name)
+        tract = tract_entity.get_cached_value(format_census_tract_name(record, field))
 
         return tract['id'] if tract else None
     
@@ -123,21 +124,8 @@ class TractPopulation(CensusPopulationResourceEntity):
         self.cacheable_fields = ['census_tract_id']
 
     def skip_record(self, record):
-        return self.record_cache and self.format_census_tract(record['census_tract']) in self.record_cache
-
-    def load_cache(self):
-        if self.record_cache is None:
-            self.record_cache = {}
-
-        if self.cacheable_fields is not None:
-            records = self.mysql_client.select(self.table_name)
-            tract_entity = self.dependencies_map[entity_key.census_tract]
-            
-            for record in records:
-                for field in self.cacheable_fields:
-                    tract_record = tract_entity.get_cached_value(record[field])
-                    formatted_tract = tract_entity.format_census_tract(tract_record['name'])
-                    self.record_cache[formatted_tract] = record
+        census_tract_id = self.get_tract_id(record, 'census_tract')
+        return census_tract_id and str(census_tract_id) in self.record_cache
 
     def fetch(self):
         api_path = '?id=ACSDT5Y2020.B01003&g=010XX00US$1400000'
