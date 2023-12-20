@@ -7,7 +7,7 @@ from census.abstract import CensusPopulationResourceEntity
 import threading
 
 FETCHED_RECORDS_THRESHOLD = 10000
-THREAD_POOL_LIMIT = 25
+THREAD_POOL_LIMIT = 75
 
 
 def get_block_group_fips(record, field):
@@ -15,17 +15,15 @@ def get_block_group_fips(record, field):
     return fips_code
 
 
+def format_block_group_name(record, field):
+    return record[field].replace(',', ';')
+
+
 class BlockGroup(ResourceEntity):
 
     @staticmethod
     def dependencies():
         return [entity_key.census_tract]
-    
-    @staticmethod
-    def format_block_group(subject_block):
-        return (
-            subject_block.replace(';', ',').replace('├▒', 'ñ').replace('├│', 'ó').replace('├¡', 'í').replace('├í', 'á').replace('├╝', 'ü')
-        ).lower()
 
     def get_census_tract_id(self, record, field):
         census_tract_entity = self.dependencies_map[entity_key.census_tract]
@@ -38,18 +36,30 @@ class BlockGroup(ResourceEntity):
         self.record_cache = {}
 
         self.fields = [
-            {'field': 'name'},
+            {'field': 'name', 'column': 'name', 'data': format_block_group_name},
             {'field': 'code', 'column': 'fips', 'data': get_block_group_fips},
             {'field': 'code', 'column': 'census_tract_id', 'data': self.get_census_tract_id}
         ]
 
+        self.updates = []
         self.cacheable_fields = ['name', 'fips', 'id']
         self.resolved_census_tract_fips = set()
 
     def skip_record(self, record):
-        return 'code' in record and '$' in record['code'] \
-            or 'name' in record and self.format_block_group(record['name']) in self.record_cache
-    
+        return 'code' in record and (
+            '$' in record['code'] or format_block_group_name(record, 'name') in self.record_cache
+        )
+
+    def update_record(self, record):
+        block_group = self.get_cached_value(get_block_group_fips(record, 'code'))
+        return block_group and block_group['name'] != format_block_group_name(record, 'name')
+
+    def create_update_record(self, record):
+        block_group = self.record_cache[get_block_group_fips(record, 'code')]
+        record_id = block_group['id']
+        record_name = format_block_group_name(record, 'name')
+        return {'fields': ['name'], 'values': [record_name], 'clause': f'id = {record_id}'}
+
     def load_cache(self):
         if self.record_cache is None:
             self.record_cache = {}
@@ -59,7 +69,7 @@ class BlockGroup(ResourceEntity):
             for record in records:
                 for field in self.cacheable_fields:
                     if field == 'name':
-                        self.record_cache[self.format_block_group(str(record[field]))] = record
+                        self.record_cache[format_block_group_name(record, field)] = record
                     else:
                         self.record_cache[str(record[field])] = record
 
@@ -67,11 +77,6 @@ class BlockGroup(ResourceEntity):
         census_tract_cache = self.dependencies_map[entity_key.census_tract].record_cache
 
         self.records = []
-        for block_group_name in self.record_cache:
-            cached_block_group = self.record_cache[block_group_name]
-            census_tract_fips = cached_block_group['fips'][:-1]
-            if census_tract_fips in census_tract_cache:
-                self.resolved_census_tract_fips.add(census_tract_fips)
 
         census_tract_keys = list(census_tract_cache.keys())
         census_tract_index = 0
@@ -114,6 +119,9 @@ class BlockGroup(ResourceEntity):
         self.load_cache()
         self.fetch()
 
+    def after_update(self):
+        self.updates = []
+
 
 class BlockGroupPopulation(CensusPopulationResourceEntity):
 
@@ -127,18 +135,7 @@ class BlockGroupPopulation(CensusPopulationResourceEntity):
 
     def get_block_group_id(self, record, field):
         block_group_entity = self.dependencies_map[entity_key.census_block_group]
-        block_group_name = self.format_block_group(record[field])
-        block_group = block_group_entity.get_cached_value(block_group_name)
-        if not block_group:
-            block_group = block_group_entity.get_cached_value(record[field].lower())
-
-        if not block_group:
-            if ';' in block_group_name:
-                block_group_name = block_group_name.replace(';', ',')
-                block_group = block_group_entity.get_cached_value(block_group_name)
-            elif ',' in block_group_name:
-                block_group_name = block_group_name.replace(',', ';')
-                block_group = block_group_entity.get_cached_value(block_group_name)
+        block_group = block_group_entity.get_cached_value(format_block_group_name(record, field))
 
         return block_group['id'] if block_group else None
 
@@ -153,21 +150,8 @@ class BlockGroupPopulation(CensusPopulationResourceEntity):
         self.cacheable_fields = ['block_group_id']
 
     def skip_record(self, record):
-        return self.record_cache and self.format_block_group(record['block_group']) in self.record_cache
-
-    def load_cache(self):
-        if self.record_cache is None:
-            self.record_cache = {}
-
-        if self.cacheable_fields is not None:
-            records = self.mysql_client.select(self.table_name)
-            block_group_entity = self.dependencies_map[entity_key.census_block_group]
-            
-            for record in records:
-                for field in self.cacheable_fields:
-                    block_group_record = block_group_entity.get_cached_value(record[field])
-                    formatted_block_group = block_group_entity.format_block_group(block_group_record['name'])
-                    self.record_cache[formatted_block_group] = record
+        block_group_id = self.get_block_group_id(record, 'block_group')
+        return block_group_id and str(block_group_id) in self.record_cache
 
     def fetch(self):
         api_path = '?id=ACSDT5Y2020.B01003&g=010XX00US$1500000'
