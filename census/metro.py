@@ -14,6 +14,10 @@ class USMetroArea(ResourceEntity):
     def dependencies():
         return [entity_key.census_us_state]
 
+    @staticmethod
+    def get_class_name():
+        return f'{__name__}.{__class__.__name__}'
+
     def get_state_id(self, record, field):
         state_entity = self.dependencies_map[entity_key.census_us_state]
         (metro_name, state_name) = record[field].split(';')
@@ -33,6 +37,9 @@ class USMetroArea(ResourceEntity):
 
     def skip_record(self, record):
         return record['name'] in self.record_cache
+
+    def should_fetch_data(self):
+        return not ResourceEntity.should_skip_fetch(self.get_class_name())
 
     def fetch(self):
         response_content = json.loads(requests.request('GET', api_url).content)

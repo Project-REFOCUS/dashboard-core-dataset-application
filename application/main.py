@@ -37,8 +37,12 @@ def execute(entities):
             module_timer = performance_logger.start(f'Executing module {key}')
             logger.debug(f'Loading {key} cache...')
             instantiated_entity.load_cache()
-            logger.debug(f'Fetching data for {key}...')
-            instantiated_entity.fetch()
+            if instantiated_entity.should_fetch_data():
+                logger.debug(f'Fetching data for {key}...')
+                instantiated_entity.fetch()
+            else:
+                logger.debug(f'Skipping fetch for {key}...')
+
             while instantiated_entity.has_data():
                 logger.debug(f'Entity {key} has data and saving...')
                 instantiated_entity.save()
@@ -76,14 +80,14 @@ if __name__ == '__main__':
         entity_key.cdc_county_deaths,
         entity_key.police_fatal_shootings,
         entity_key.apha_racism_declarations,
-        # entity_key.ucla_covid_behind_bars,
-        # entity_key.osha_closed_complaints,
+        entity_key.ucla_covid_behind_bars,
+        entity_key.osha_closed_complaints,
         # entity_key.twitter_account,
         # entity_key.twitter_tweets,
         # entity_key.twitter_tweets_terms,
         # entity_key.twitter_tweets_terms_frequency,
         entity_key.cdc_waste_water,
-        # entity_key.epa_ejscreen_value,
+        entity_key.epa_ejscreen_value,
         entity_key.childcare_center,
         entity_key.wholesale_market,
         entity_key.census_zipcode_population,

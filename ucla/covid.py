@@ -56,6 +56,10 @@ class CovidBehindBars(ResourceEntity):
             entity_key.census_us_state
         ]
 
+    @staticmethod
+    def get_class_name():
+        return f'{__name__}.{__class__.__name__}'
+
     def get_calendar_date_id(self, record, field):
         calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
         return calendar_date_entity.get_cached_value(record[field])['id']
@@ -123,6 +127,9 @@ class CovidBehindBars(ResourceEntity):
             })
 
             assert_non_zero(self.records[-1])
+
+    def should_fetch_data(self):
+        return not ResourceEntity.should_skip_fetch(self.get_class_name())
 
     def fetch(self):
         state_url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?size=100&id=4'

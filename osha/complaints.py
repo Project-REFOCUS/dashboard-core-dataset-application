@@ -26,6 +26,7 @@ def row_has_data(worksheet, index):
 
     return has_data
 
+
 class OshaClosedComplaints(ResourceEntity):
 
     @staticmethod
@@ -35,6 +36,10 @@ class OshaClosedComplaints(ResourceEntity):
             entity_key.census_us_state,
             entity_key.census_us_city
         ]
+
+    @staticmethod
+    def get_class_name():
+        return f'{__name__}.{__class__.__name__}'
 
     def get_calendar_date_id(self, record, field):
         calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
@@ -75,6 +80,9 @@ class OshaClosedComplaints(ResourceEntity):
 
     def skip_record(self, record):
         return record['UPA #'] in self.record_cache or self.get_city_id(record, 'Site City') is None
+
+    def should_fetch_data(self):
+        return not ResourceEntity.should_skip_fetch(self.get_class_name())
 
     def fetch(self):
         request = requests.get(URL, headers=HEADERS)
