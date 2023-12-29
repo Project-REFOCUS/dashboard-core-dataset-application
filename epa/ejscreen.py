@@ -16,6 +16,10 @@ class EpaDataField(ResourceEntity):
     def dependencies():
         return []
 
+    @staticmethod
+    def get_class_name():
+        return f'{__name__}.{__class__.__name__}'
+
     def __init__(self):
         super().__init__()
 
@@ -57,7 +61,7 @@ class EpaDataField(ResourceEntity):
         return len(columns_with_data) == column_count
 
     def should_fetch_data(self):
-        return not ResourceEntity.should_skip_fetch(__name__)
+        return not ResourceEntity.should_skip_fetch(self.get_class_name())
 
     def fetch(self):
         field_name_set = set()
@@ -110,6 +114,10 @@ class EpaDataValue(ResourceEntity):
     def dependencies():
         return [entity_key.epa_ejscreen_field, entity_key.census_block_group]
 
+    @staticmethod
+    def get_class_name():
+        return f'{__name__}.{__class__.__name__}'
+
     def get_ej_data_field(self, record, field):
         ej_data_field_entity = self.dependencies_map[entity_key.epa_ejscreen_field]
         ej_data_field = ej_data_field_entity.get_cached_value(record[field])
@@ -150,6 +158,9 @@ class EpaDataValue(ResourceEntity):
     def get_cached_value(self, key):
         cached_value = self.mysql_client.select(self.table_name, where=f'public_id="{key}"')
         return cached_value[0] if cached_value else None
+
+    def should_fetch_data(self):
+        return not ResourceEntity.should_skip_fetch(self.get_class_name())
 
     def fetch(self):
         filename_set = {
