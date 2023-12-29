@@ -28,7 +28,8 @@ class EpaDataField(ResourceEntity):
         self.field_urls = [
             'https://gaftp.epa.gov/EJScreen/2020/2020_EJSCREEEN_columns-explained.xlsx',
             'https://gaftp.epa.gov/EJScreen/2021/2021_EJSCREEEN_columns-explained.xlsx',
-            'https://gaftp.epa.gov/EJScreen/2022/2022_EJSCREEN_BG_Columns.xlsx'
+            'https://gaftp.epa.gov/EJScreen/2022/2022_EJSCREEN_BG_Columns.xlsx',
+            'https://gaftp.epa.gov/EJScreen/2023/2.22_September_UseMe/EJSCREEN_2023_BG_Columns.xlsx'
         ]
         self.column_codes = ['A', 'B', 'C']
 
@@ -54,6 +55,9 @@ class EpaDataField(ResourceEntity):
                 columns_with_data.append(column_code)
 
         return len(columns_with_data) == column_count
+
+    def should_fetch_data(self):
+        return not ResourceEntity.should_skip_fetch(__name__)
 
     def fetch(self):
         field_name_set = set()

@@ -2,6 +2,7 @@ from common.utils import progress
 from database.mysqldb import MysqlClient
 
 import types
+import os
 
 
 class ResourceEntity:
@@ -9,6 +10,15 @@ class ResourceEntity:
     @staticmethod
     def dependencies():
         return []
+
+    @staticmethod
+    def get_class_name():
+        return f'{__name__}.{__class__.__name__}'
+
+    @staticmethod
+    def should_skip_fetch(name):
+        default_name = ResourceEntity.get_class_name()
+        return os.getenv(f'{name}.module.fetch', os.getenv(f'{default_name}.module.fetch')) == 'DISABLED'
 
     def __init__(self):
         self.dependencies_cache = None
@@ -65,6 +75,9 @@ class ResourceEntity:
             self.load_cache()
 
         return self.record_cache
+
+    def should_fetch_data(self):
+        return not self.should_skip_fetch(ResourceEntity.get_class_name())
 
     def fetch(self):
         self.updates = []

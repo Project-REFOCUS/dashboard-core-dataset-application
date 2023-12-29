@@ -12,6 +12,10 @@ def get_state_abbrev(record, field):
 
 class USState(ResourceEntity):
 
+    @staticmethod
+    def get_class_name():
+        return f'{__name__}.{__class__.__name__}'
+
     def __init__(self):
         super().__init__()
 
@@ -25,6 +29,9 @@ class USState(ResourceEntity):
     def skip_record(self, record):
         state_name = record['name']
         return state_name in ignored_states or state_name in self.record_cache or state_name not in state_abbrev_map
+
+    def should_fetch_data(self):
+        return not ResourceEntity.should_skip_fetch(self.get_class_name())
 
     def fetch(self):
         url = 'https://data.census.gov/api/explore/facets/geos/entityTypes?id=4&size=100'
