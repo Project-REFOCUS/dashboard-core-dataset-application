@@ -1,10 +1,12 @@
 from mysql.connector import connect
+from common.logger import Logger
 from common import utils
 
 import os
 
 
 SQL_MAX_LENGTH = 10000
+logger = Logger('database.mysqldb')
 
 
 def missing_env_var(var):
@@ -55,6 +57,7 @@ def generate_update_placeholders(fields):
 
 
 class MysqlClient:
+    connection = None
 
     def __init__(self):
         self.insert_cache = {}
@@ -66,7 +69,6 @@ class MysqlClient:
         self.name = os.getenv('MYSQL_NAME')
         self.port = os.getenv('MYSQL_PORT')
 
-        self.connection = None
         self.cursor = None
         self.reset_cache()
 
@@ -82,15 +84,17 @@ class MysqlClient:
         elif self.port is None:
             missing_env_var('MYSQL_PORT')
         elif self.is_connected():
-            print('There is already an active connection with this client instance')
+            logger.debug('There is already an active connection with this mysql client instance')
         else:
-            self.connection = connect(
+            logger.debug('Opening connection to MySQL database')
+            MysqlClient.connection = connect(
                 user=self.username, password=self.password,
                 host=self.hostname, database=self.name, port=self.port
             )
 
-    def is_connected(self):
-        return self.connection is not None
+    @staticmethod
+    def is_connected():
+        return MysqlClient.connection is not None
 
     def reset_insert_cache(self):
         self.insert_cache = {'table': None, 'sql': '', 'columns': [], 'values': []}
@@ -107,11 +111,11 @@ class MysqlClient:
 
     def start_transaction(self):
         if not self.is_connected():
-            print('There is no active connection to a database')
+            logger.info('There is no active connection with this client instance')
         elif self.transaction_active():
-            print('There is already an active transaction')
+            logger.info('There is already an active connection with this client')
         else:
-            self.cursor = self.connection.cursor()
+            self.cursor = MysqlClient.connection.cursor()
 
     def commit(self):
         if not self.is_connected():
@@ -125,7 +129,7 @@ class MysqlClient:
             if len(self.update_cache['sql']) > 0:
                 self.cursor.execute(self.update_cache['sql'], self.update_cache['values'], multi=True)
 
-            self.connection.commit()
+            MysqlClient.connection.commit()
             self.cursor.close()
             self.cursor = None
             self.reset_cache()
@@ -216,7 +220,10 @@ class MysqlClient:
         #     print('Cannot select while a transaction is currently in progress')
         #     return None
 
-        cursor = self.connection.cursor()
+        if not self.is_connected():
+            self.connect()
+
+        cursor = MysqlClient.connection.cursor()
         cursor.execute(query)
 
         column_names = cursor.column_names
@@ -234,8 +241,9 @@ class MysqlClient:
 
     def close(self):
         if self.is_connected():
-            self.connection.close()
-            self.connection = None
+            logger.debug('Closing connection to mysql database')
+            MysqlClient.connection.close()
+            MysqlClient.connection = None
 
     def __del__(self):
         self.close()
