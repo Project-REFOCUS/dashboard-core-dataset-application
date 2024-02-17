@@ -16,7 +16,8 @@ from cdc.tests import StateTests
 from cdc.deaths import NycCountyDeaths
 from cdc.vaccinations import StateVaccinations
 from epa.ejscreen import EpaDataField, EpaDataValue
-from police.entity import FatalShootings
+from police.shootings import FatalShootings
+from police.ethnicity import FatalShootingsRaceEthnicity
 from apha.racism import RacismDeclarations
 from ucla.covid import CovidBehindBars
 from osha.complaints import OshaClosedComplaints
@@ -62,6 +63,7 @@ entity_map = {
     entity_key.epa_ejscreen_field: EpaDataField,
     entity_key.epa_ejscreen_value: EpaDataValue,
     entity_key.police_fatal_shootings: FatalShootings,
+    entity_key.police_race_ethnicity: FatalShootingsRaceEthnicity,
     entity_key.apha_racism_declarations: RacismDeclarations,
     entity_key.ucla_covid_behind_bars: CovidBehindBars,
     entity_key.osha_closed_complaints: OshaClosedComplaints,

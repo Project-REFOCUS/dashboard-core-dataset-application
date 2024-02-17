@@ -12,6 +12,10 @@ class CalendarDate(ResourceEntity):
             entity_key.calendar_day
         ]
 
+    @staticmethod
+    def get_class_name():
+        return f'{__name__}.{__class__.__name__}'
+
     def __init__(self):
         super().__init__()
 
@@ -32,6 +36,9 @@ class CalendarDate(ResourceEntity):
 
     def skip_record(self, record):
         return record['date'] in self.record_cache if self.record_cache is not None else False
+
+    def should_fetch_data(self):
+        return not ResourceEntity.should_skip_fetch(self.get_class_name())
 
     def fetch(self):
         self.records = []

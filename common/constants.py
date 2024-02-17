@@ -28,6 +28,7 @@ class EntityKey:
     epa_ejscreen_field = 'epa.ejscreen_field'
     epa_ejscreen_value = 'epa.ejscreen_value'
     police_fatal_shootings = 'police.fatal_shootings'
+    police_race_ethnicity = 'police.race_ethnicity'
     apha_racism_declarations = 'apha.racism_declarations'
     ucla_covid_behind_bars = 'ucla.covid_behind_bars'
     osha_closed_complaints = 'osha.osha_closed_complaints'
