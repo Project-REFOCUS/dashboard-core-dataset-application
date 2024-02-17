@@ -1,13 +1,9 @@
 from common.constants import entity_key
-from datetime import date, datetime
 from entity.abstract import ResourceEntity
-from common.utils import int_or_none, ensure_float
+from common.utils import int_or_none
+from .utils import fetch_police_shooting_data
 
-import requests
-import csv
-import io
-
-URL = 'https://raw.githubusercontent.com/washingtonpost/data-police-shootings/master/v1/fatal-police-shootings-data.csv'
+URL = 'https://raw.githubusercontent.com/washingtonpost/data-police-shootings/master/v2/fatal-police-shootings-data.csv'
 
 
 race_ethnicity_mapping = {
@@ -21,7 +17,7 @@ race_ethnicity_mapping = {
 
 
 def get_gender_value(record, field):
-    return 0 if record[field] == 'M' else 1
+    return 0 if record[field] == 'male' else 1
 
 
 def get_mental_value(record, field):
@@ -36,10 +32,6 @@ def get_age_value(record, field):
     return int_or_none(record[field])
 
 
-def get_coordinate_value(record, field):
-    return ensure_float(record[field])
-
-
 class FatalShootings(ResourceEntity):
 
     @staticmethod
@@ -50,6 +42,10 @@ class FatalShootings(ResourceEntity):
             entity_key.calendar_date,
             entity_key.census_race_ethnicity
         ]
+
+    @staticmethod
+    def get_class_name():
+        return f'{__name__}.{__class__.__name__}'
 
     def get_calendar_date_id(self, record, field):
         calendar_date_entity = self.dependencies_map[entity_key.calendar_date]
@@ -81,37 +77,26 @@ class FatalShootings(ResourceEntity):
             {'field': 'date', 'column': 'calendar_date_id', 'data': self.get_calendar_date_id},
             {'field': 'id', 'column': 'public_id'},
             {'field': 'name'},
-            {'field': 'manner_of_death'},
-            {'field': 'armed'},
+            {'field': 'armed_with', 'column': 'armed'},
             {'field': 'age', 'column': 'age', 'data': get_age_value},
             {'field': 'gender', 'column': 'gender', 'data': get_gender_value},
-            {'field': 'signs_of_mental_illness', 'column': 'mental', 'data': get_mental_value},
-            {'field': 'threat_level'},
+            {'field': 'was_mental_illness_related', 'column': 'mental', 'data': get_mental_value},
+            {'field': 'threat_type', 'column': 'threat_level'},
             {'field': 'body_camera', 'data': get_body_camera_value},
             {'field': 'city', 'column': 'city_id', 'data': self.get_city_id},
-            {'field': 'race', 'column': 'race_ethnicity_id', 'data': self.get_race_ethnicity_id},
-            {'field': 'longitude', 'data': get_coordinate_value},
-            {'field': 'latitude', 'data': get_coordinate_value}
         ]
         self.cacheable_fields = ['public_id']
+
+    def fetch(self):
+        self.records = fetch_police_shooting_data()
+        self.updates = []
 
     def skip_record(self, record):
         return (record['id'] in self.record_cache if self.record_cache is not None else False)\
                 or self.get_city_id(record, 'city') == 0
 
-    def fetch(self):
-        request = requests.request('GET', URL)
-        raw_data = csv.DictReader(io.StringIO(request.content.decode('utf-8')))
-
-        self.records = []
-        self.updates = []
-
-        start_of_2020 = date(2020, 1, 1)
-        records = list(raw_data)
-        for record in records:
-            record_date = datetime.fromisoformat(record['date']).date()
-            if start_of_2020 <= record_date:
-                self.records.append(record)
+    def should_fetch_data(self):
+        return not ResourceEntity.should_skip_fetch(self.get_class_name())
 
     def update_record(self, record):
         return False
