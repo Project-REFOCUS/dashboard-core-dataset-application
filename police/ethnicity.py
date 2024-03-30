@@ -58,7 +58,8 @@ class FatalShootingsRaceEthnicity(ResourceEntity):
                 self.records.append({'race': race, 'id': record['id']})
 
     def skip_record(self, record):
-        return record['id'] in self.record_cache or self.get_fatal_police_shooting_id(record, 'id') == 0
+        fatal_police_shooting_id = self.get_fatal_police_shooting_id(record, 'id')
+        return self.get_cached_value(fatal_police_shooting_id) or fatal_police_shooting_id == 0
 
     def should_fetch_data(self):
         return not ResourceEntity.should_skip_fetch(self.get_class_name())
