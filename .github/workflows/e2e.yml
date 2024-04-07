@@ -50,7 +50,7 @@ jobs:
       - name: Build Docker image
         run: docker build -t project-refocus-e2e-testing:new-env ${{ github.workspace }}/application
       - name: Execute End to end test
-        run: docker run --name project-refocus-e2e-testing --network host --env-file ${{ github.workspace }}/application/e2e/.env project-refocus-e2e-testing:new-env
+        run: docker run --name project-refocus-e2e-testing --network host --env-file ${{ github.workspace }}/application/e2e/.env --env NEW_RELIC_LICENSE_KEY=${{ secrets.NEW_RELIC_LICENSE_KEY }} project-refocus-e2e-testing:new-env
       - name: Dump MySQL data
         run: mysqldump -u root project_refocus >> project_refocus.sql
       - name: Upload MySQL datadump to S3

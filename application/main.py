@@ -2,6 +2,8 @@ from common.modules import entity_map
 from common.constants import entity_key
 from common.logger import Logger
 from common.performance import PerformanceLogger
+from newrelic import agent as newrelic_agent
+from newrelic.api import application as newrelic_application
 
 import sys
 
@@ -61,6 +63,8 @@ def execute(entities):
 
 
 if __name__ == '__main__':
+    newrelic_agent.initialize()
+    newrelic_application.register_application()
     root_entities = [
         entity_key.census_us_metro_area,
         entity_key.census_us_city_zipcode,
